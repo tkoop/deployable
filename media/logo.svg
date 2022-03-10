@@ -24,9 +24,9 @@
      inkscape:document-units="mm"
      showgrid="true"
      units="in"
-     inkscape:zoom="7.9867624"
-     inkscape:cx="568.94143"
-     inkscape:cy="542.96094"
+     inkscape:zoom="11.294988"
+     inkscape:cx="4.603812"
+     inkscape:cy="1042.6306"
      inkscape:window-width="1600"
      inkscape:window-height="829"
      inkscape:window-x="0"
@@ -50,7 +50,7 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="font-variation-settings:normal;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+       style="font-variation-settings:normal;fill:#e3dfff;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
        d="m 144.47573,139.18406 h 8.46667 v 8.46667 h -8.46667 z"
        id="path875-6"
        inkscape:export-filename="/home/timk/Projects/deployables.timkoop.com/media/icon.svg"
@@ -67,6 +67,17 @@
        id="path2990-5-1"
        cx="150.94684"
        cy="146.19104"
+       r="0.92604166" />
+    <path
+       id="path1135-2-7"
+       style="font-variation-settings:normal;vector-effect:none;fill:#0e0069;fill-opacity:1;stroke:none;stroke-width:0.264999;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+       d="m 4.7624999,270.93333 v 2.25309 C 4.2592439,272.77068 3.614166,272.52083 2.9104166,272.52083 1.3030359,272.52083 3.0000303e-8,273.82387 3.0000303e-8,275.43125 3.0000303e-8,277.03863 1.3030359,278.34166 2.9104166,278.34166 V 279.4 l 1.5875,-1.5875 -1.5875,-1.5875 v 1.05833 c -1.0583412,0 -1.8225081,-0.7939 -1.8370972,-1.8464 -0.01479,-1.06417 0.7786687,-1.85791 1.8319299,-1.86138 1.0475807,-0.003 1.8572506,0.68669 1.8572506,1.8557 H 3.7041666 l 1.5875,1.5875 1.5875,-1.5875 H 5.8208333 v -4.49792 z"
+       sodipodi:nodetypes="ccsscccccccccccccc" />
+    <circle
+       style="fill:#0e0069;fill-opacity:1;stroke:none;stroke-width:0.0264583;stroke-linecap:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2990-5-1-0"
+       cx="5.4260063"
+       cy="277.95352"
        r="0.92604166" />
   </g>
 </svg>
