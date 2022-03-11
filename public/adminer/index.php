@@ -1,17 +1,17 @@
 <?php
 
-// read ADMINER_PASSWORD from .env
+// read ADMIN_PASSWORD from .env
 $password = file_get_contents(__DIR__ . '/../../.env');
 $password = explode("\n", $password);
 $password = array_map('trim', $password);
 $password = array_filter($password, function ($value) {
-    return strpos($value, 'ADMINER_PASSWORD') === 0;
+    return strpos($value, 'ADMIN_PASSWORD=') === 0;
 });
 $password = array_pop($password);
 
 if ($password === null) {
     header('HTTP/1.1 500 Internal Server Error');
-    die('ADMINER_PASSWORD not found in .env');
+    die('ADMIN_PASSWORD not found in .env');
 }
 
 $password = explode('=', $password);
