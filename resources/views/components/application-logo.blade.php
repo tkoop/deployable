@@ -1,4 +1,4 @@
-<img src="/full_logo.png" style="width: 30%; margin: auto;">
+<img src="/full_logo.png" style="height:55px">
 
 {{-- <svg width="100px" height="100px" version="1.1" viewBox="0 0 207.9 255.8" xmlns="http://www.w3.org/2000/svg">
 <g transform="translate(-1.121 -22.8)" fill="#0e0069">
