@@ -13,11 +13,21 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+if (env("ADMIN_PASSWORD", null) == null) {
+    Route::fallback(function () {
+        return view('no-password');
+    });
+    return;
+}
+
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', function () {
         return view('dashboard');
     })->name('dashboard');
-});
 
+    Route::get('no-password', function() {
+        return redirect('/');
+    });
+});
 
 require __DIR__.'/auth.php';
