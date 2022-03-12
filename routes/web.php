@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,9 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-if (env("ADMIN_PASSWORD", null) == null) {
-    Route::fallback(function () {
-        return view('no-password');
+if (env("ADMIN_PASSWORD", null) == null || !file_exists("../.env") || !file_exists("../database/database.sqlite")) {
+    Route::get('setup', [SetupController::class, 'view']);
+    Route::post('setup', [SetupController::class, 'setup']);
+    Route::fallback(function() {
+        return redirect("/setup");
     });
     return;
 }
@@ -25,7 +28,7 @@ Route::group(['middleware' => 'auth'], function () {
         return view('dashboard');
     })->name('dashboard');
 
-    Route::get('no-password', function() {
+    Route::get('setup', function() {
         return redirect('/');
     });
 });
