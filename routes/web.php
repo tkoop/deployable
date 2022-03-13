@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-if (env("ADMIN_PASSWORD", null) == null || !file_exists("../.env") || !file_exists("../database/database.sqlite")) {
+if (SetupController::needsSetup()) {
     Route::get('setup', [SetupController::class, 'view']);
     Route::post('setup', [SetupController::class, 'setup']);
     Route::fallback(function() {
