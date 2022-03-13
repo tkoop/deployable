@@ -2,6 +2,7 @@
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 define('LARAVEL_START', microtime(true));
 
@@ -43,6 +44,14 @@ require __DIR__.'/../vendor/autoload.php';
 | to this client's browser, allowing them to enjoy our application.
 |
 */
+
+if (!file_exists('../database/database.sqlite')) {
+    touch('../database/database.sqlite');
+}
+
+if (!file_exists('../.env')) {
+    copy('../.env.example', '../.env');
+}
 
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
