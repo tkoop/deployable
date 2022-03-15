@@ -23,7 +23,7 @@ class AuthController extends Controller {
                 ]);
             }
             Auth::login(User::first());
-            return redirect()->route("dashboard")->with('status', "You're logged in.");
+            return redirect()->route("dashboard")->withStatus("You're logged in.");
         } else {
             return back()->withErrors("Wrong password.");
         }
@@ -33,6 +33,6 @@ class AuthController extends Controller {
         Auth::logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
-        return redirect()->route('login')->with('status', "You're logged out.");
+        return redirect()->route('login')->withStatus("You're logged out.");
     }
 }
