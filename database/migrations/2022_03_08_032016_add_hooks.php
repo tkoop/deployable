@@ -11,9 +11,11 @@ return new class extends Migration {
      * @return void
      */
     public function up() {
-        Schema::create('apps', function (Blueprint $table) {
+        Schema::create('hooks', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('slug');
+            $table->text('script')->default("");
             $table->timestamps();
         });
     }
@@ -24,6 +26,6 @@ return new class extends Migration {
      * @return void
      */
     public function down() {
-        Schema::dropIfExists('apps');
+        Schema::dropIfExists('hooks');
     }
 };

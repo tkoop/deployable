@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\App;
-use Illuminate\Http\Request;
+use App\Models\Hook;
 
 class DashboardController extends Controller {
 
     public function view() {
-        $apps = App::orderBy("name")->get();
+        $hooks = Hook::orderBy("name")->get();
 
-        return view('dashboard', ["apps" => $apps]);
+        return view('dashboard', ["hooks" => $hooks]);
     }
 }

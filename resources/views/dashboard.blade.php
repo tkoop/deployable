@@ -12,11 +12,11 @@
 
                     <div>
                         <div style="float:right">
-                            <x-button onclick="window.location='/newApp'">New App</x-button>
+                            <x-button onclick="window.location='/newHook'">New Hook</x-button>
                         </div>
 
-                        @if (count($apps) == 0)
-                            <p>You don't have any apps yet. Click the button to make a new one.</p>
+                        @if (count($hooks) == 0)
+                            <p>You don't have any hooks yet. Click the button to make a new one.</p>
                         @endif
 
                     </div>

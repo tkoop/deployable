@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\AppController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HookController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
 
@@ -27,8 +27,8 @@ if (SetupController::needsSetup()) {
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'view'])->name('dashboard');
-    Route::get('/newApp', [AppController::class, 'viewNew'])->name('newApp');
-    Route::post('/newApp', [AppController::class, 'doNew']);
+    Route::get('/newHook', [HookController::class, 'viewNew'])->name('newHook');
+    Route::post('/newHook', [HookController::class, 'doNew']);
 
     Route::get('setup', function() {
         return redirect('/');
