@@ -24,6 +24,16 @@ if ($_SERVER['PHP_AUTH_USER'] != 'adminer' || $_SERVER['PHP_AUTH_PW'] != $passwo
     exit;
 }
 
+// auto-correct the database config
+if (!isset($_GET['sqlite']) || !isset($_GET['username']) || ($_GET['db'] ?? '') != '../../database/database.sqlite') {
+    $_GET['sqlite'] = '';
+    $_GET['username'] = '';
+    $_GET['db'] = '../../database/database.sqlite';
+    $queryString = http_build_query($_GET);
+    header('Location: ' . $_SERVER['PHP_SELF'] . '?' . $queryString);
+    exit;
+}
+
 function adminer_object() {
     // Required to run any plugin.
     include_once(__DIR__ . "/plugins/plugin.php");
