@@ -27,4 +27,12 @@ class HookController extends Controller {
 
         return redirect('/')->withError('nyi');
     }
+
+    public function deploy(Hook $hook) {
+        return redirect('/')->withStatus("Didn't actually deploy.");
+    }
+
+    public function viewEdit(Hook $hook) {
+        return view('editHook', ["name" => $hook->name, "slug" => $hook->slug, "baseURL" => url('hook')]);
+    }
 }
