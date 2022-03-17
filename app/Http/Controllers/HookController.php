@@ -33,6 +33,19 @@ class HookController extends Controller {
     }
 
     public function viewEdit(Hook $hook) {
-        return view('editHook', ["name" => $hook->name, "slug" => $hook->slug, "baseURL" => url('hook')]);
+        return view('editHook', ["hook" => $hook, "baseURL" => url('hook')]);
+    }
+
+    public function doEdit(Hook $hook) {
+        request()->validate([
+            "name" => "required",
+            "slug" => "required",
+        ]);
+
+        $hook->name = request("name");
+        $hook->slug = request("slug");
+        $hook->save();
+
+        return redirect('/')->withStatus("Hook was saved.");
     }
 }

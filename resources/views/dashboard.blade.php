@@ -49,7 +49,7 @@
                                         <div class="mr-2">
                                             <form method="post" action="/hook/{{ $hook->id }}/deploy">
                                                 @csrf
-                                                <x-button>Deploy Now</x-button>
+                                                <x-button disabled>Deploy Now</x-button>
                                             </form>
                                         </div>
 
