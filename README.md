@@ -1,6 +1,6 @@
 ## About Deployable
 
-Deployable is a web application that receive web hooks and runs a script, so you can automatically deploy a website when a new commit is pushed to remote.
+Deployable is a web application that receives web hooks and runs a script for each one, so you can automatically deploy a website when a new commit is pushed to remote.
 
 ## How to use it
 
