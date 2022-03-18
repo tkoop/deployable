@@ -26,10 +26,13 @@
 
         <!-- Page Heading -->
         <header class="bg-white shadow">
-            <div class="px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <div class="flex justify-between px-4 py-6 mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    {{ $header }}
+                    {{ $header ?? "" }}
                 </h2>
+                <div>
+                    {{ $headerRight ?? "" }}
+                </div>
             </div>
         </header>
 

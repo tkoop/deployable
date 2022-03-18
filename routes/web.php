@@ -32,6 +32,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/hook/{hook}/deploy', [HookController::class, 'deploy']);
     Route::get('/hook/{hook}/edit', [HookController::class, 'viewEdit']);
     Route::post('/hook/{hook}/edit', [HookController::class, 'doEdit']);
+    Route::get('/hook/{hook}/deployments', [HookController::class, 'deployments']);
 
     Route::get('setup', function() {
         return redirect('/');
