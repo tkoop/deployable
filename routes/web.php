@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DeploymentController;
 use App\Http\Controllers\HookController;
 use App\Http\Controllers\SetupController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/hook/{hook}/edit', [HookController::class, 'viewEdit']);
     Route::post('/hook/{hook}/edit', [HookController::class, 'doEdit']);
     Route::get('/hook/{hook}/deployments', [HookController::class, 'deployments']);
+
+    Route::get('/deployment/{deployment}', [DeploymentController::class, 'view']);
 
     Route::get('setup', function() {
         return redirect('/');

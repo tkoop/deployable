@@ -29,7 +29,8 @@ class HookController extends Controller {
 	}
 
 	public function deploy(Hook $hook) {
-		return redirect('/')->withStatus("Didn't actually deploy.");
+		$deployment = $hook->start();
+		return redirect('/deployment/' . $deployment->id);
 	}
 
 	public function viewEdit(Hook $hook) {
