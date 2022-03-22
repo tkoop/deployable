@@ -8,8 +8,8 @@
 			<div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
 				<div class="p-6 bg-white border-b border-gray-200">
 
-					Script
-					<div class="border">{{ $deployment->hook->script }}</div>
+					<h2 class="text-lg">Output</h2>
+					<div class="p-3 font-mono text-white whitespace-pre-wrap bg-black">{{ $deployment->manager()->getOutput() }}</div>
 
 				</div>
 			</div>

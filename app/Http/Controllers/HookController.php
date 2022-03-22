@@ -38,7 +38,8 @@ class HookController extends Controller {
 	}
 
 	public function deployments(Hook $hook) {
-		return view('deployments', ["hook" => $hook]);
+		$deployments = $hook->deployments()->orderBy("created_at", "desc")->get();
+		return view('deployments', ["hook" => $hook, "deployments" => $deployments]);
 	}
 
 	public function doEdit(Hook $hook) {
@@ -55,7 +56,7 @@ class HookController extends Controller {
 
 		$hook->name = request("name");
 		$hook->slug = request("slug");
-		$hook->script = request("script");
+		$hook->script = str_replace("\r", "", request("script"));
 		$hook->save();
 
 		return redirect('/')->withStatus("Hook was saved.");

@@ -13,7 +13,7 @@ class Hook extends Model {
 	protected $guarded = [];
 
 	public function deployments(): HasMany {
-		return $this->hasMany(Hook::class);
+		return $this->hasMany(Deployment::class);
 	}
 
 	public function start(): Deployment {
