@@ -33,6 +33,10 @@ class HookController extends Controller {
 		return redirect('/deployment/' . $deployment->id);
 	}
 
+	public function view(Hook $hook) {
+		return view('hook', ["hook" => $hook, "baseURL" => url('hook')]);
+	}
+
 	public function viewEdit(Hook $hook) {
 		return view('editHook', ["hook" => $hook, "baseURL" => url('hook')]);
 	}
