@@ -20,12 +20,12 @@ class HookController extends Controller {
 			"slug" => "required",
 		]);
 
-		Hook::create([
+		$hook = Hook::create([
 			"name" => request("name"),
 			"slug" => request("slug"),
 		]);
 
-		return redirect('/')->withError('nyi');
+		return redirect('/hook/' . $hook->id);
 	}
 
 	public function deploy(Hook $hook) {
@@ -34,11 +34,11 @@ class HookController extends Controller {
 	}
 
 	public function view(Hook $hook) {
-		return view('hook', ["hook" => $hook, "baseURL" => url('hook')]);
+		return redirect("hook/" . $hook->id . "/edit");
 	}
 
 	public function viewEdit(Hook $hook) {
-		return view('editHook', ["hook" => $hook, "baseURL" => url('hook')]);
+		return view('hookEdit', ["hook" => $hook, "baseURL" => url('hook')]);
 	}
 
 	public function deployments(Hook $hook) {
@@ -63,6 +63,6 @@ class HookController extends Controller {
 		$hook->script = str_replace("\r", "", request("script"));
 		$hook->save();
 
-		return redirect('/')->withStatus("Hook was saved.");
+		return redirect('/hook/' . $hook->id)->withStatus("Hook was saved.");
 	}
 }
