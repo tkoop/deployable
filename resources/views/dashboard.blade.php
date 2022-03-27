@@ -33,7 +33,7 @@
 			<div class="grid grid-cols-1 gap-6 mx-auto my-6 md:px-6 max-w-7xl md:grid-cols-2 lg:grid-cols-3">
 				@foreach ($hooks as $hook)
 					<div class="overflow-hidden bg-white shadow-sm hover:shadow-md sm:rounded-lg">
-						<a href="/hook/{{ $hook->id }}">
+						<a href="/hook/{{ $hook->id }}/view">
 							<div class="p-4 bg-white border-b border-gray-200 sm:p-6">
 								<div>{{ $hook->name }}</div>
 								<div class="text-gray-500">Last deployed: {{ $hook->lastDeployTime()?->diffForHumans() ?? 'never' }}</div>

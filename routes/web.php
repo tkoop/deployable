@@ -26,12 +26,14 @@ if (SetupController::needsSetup()) {
     return;
 }
 
+Route::get('/hook/{slug}', [HookController::class, 'run']);
+
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'view'])->name('dashboard');
     Route::get('/newHook', [HookController::class, 'viewNew'])->name('newHook');
     Route::post('/newHook', [HookController::class, 'doNew']);
     Route::post('/hook/{hook}/deploy', [HookController::class, 'deploy']);
-    Route::get('/hook/{hook}', [HookController::class, 'view']);
+    Route::get('/hook/{hook}/view', [HookController::class, 'view']);
     Route::get('/hook/{hook}/edit', [HookController::class, 'viewEdit']);
     Route::post('/hook/{hook}/edit', [HookController::class, 'doEdit']);
     Route::get('/hook/{hook}/deployments', [HookController::class, 'deployments']);

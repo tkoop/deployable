@@ -7,6 +7,16 @@ use Illuminate\Http\Request;
 
 class HookController extends Controller {
 
+	public function run($slug) {
+		$hook = Hook::where("slug", $slug)->first();
+		if ($hook == null) {
+			abort(404);
+		}
+
+		$deployment = $hook->start();
+		return "Success";
+	}
+
 	public function viewNew() {
 		$slug = rand(0, 99999999) . rand(0, 99999999);
 		$baseURL = url('hook');
@@ -34,7 +44,7 @@ class HookController extends Controller {
 	}
 
 	public function view(Hook $hook) {
-		return redirect("hook/" . $hook->id . "/edit");
+		return redirect("/hook/" . $hook->id . "/edit");
 	}
 
 	public function viewEdit(Hook $hook) {

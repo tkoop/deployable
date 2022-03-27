@@ -1,7 +1,7 @@
 <x-hook-layout :hook='$hook'>
-	<x-slot name="title">Edit Hook</x-slot>
+	<x-slot name="title">{{ $hook->name }} - Edit</x-slot>
 
-	<x-slot name="header">Edit Hook</x-slot>
+	<x-slot name="header">{{ $hook->name }} - Edit</x-slot>
 
 
 	<form method="post">
@@ -16,7 +16,7 @@
 			<label>Slug</label><br>
 			<x-input name="slug" type="text" class="w-full" value="{{ old('slug', $hook->slug) }}"
 				onkeydown="return slugTest(event)" onkeyup="updateSlug(this)" /><br>
-			<div class="text-gray-400">The hook will be {{ $baseURL }}/<span id="slug">{{ old('slug', $hook->slug) }}
+			<div class="text-gray-400">The hook is {{ $baseURL }}/<span id="slug">{{ old('slug', $hook->slug) }}
 			</div>
 		</div>
 
