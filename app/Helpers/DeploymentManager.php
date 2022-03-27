@@ -18,11 +18,15 @@ class DeploymentManager {
 	}
 
 	private function makeScript() {
+		$path = base_path();
+
 		return "#!/bin/bash\n" .
 			"cd ..\n" .
+			"php {$path}/artisan deploy:start {$this->deployment->id}\n" .
 			"echo \"Deployment started at `date`\"\n" .
 			$this->deployment->hook->script . "\n" .
-			"echo \"Deployment finished at `date`\"";
+			"echo \"Deployment finished at `date`\"\n" .
+			"php {$path}/artisan deploy:end {$this->deployment->id} &";
 	}
 
 	public function runScript() {
