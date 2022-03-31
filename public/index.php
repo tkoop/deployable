@@ -29,13 +29,19 @@ if (!file_exists('../.env')) {
 	runThis('cp .env.example .env');
 	runThis('php artisan cache:clear');
 	runThis('php artisan key:generate');
+	runThis('php artisan cache:clear');
 	runThis('composer install');
 	runThis('npm ci');
-	echo "<p>Refresh the page to continue.</p>";
-
+	runThis('php artisan cache:clear');
+	
 	$env = file_get_contents('.env');
 	$env = str_replace('APP_URL=', 'APP_URL=http://' . $_SERVER["HTTP_HOST"], $env);
 	file_put_contents('.env', $env);
+	
+	runThis('php artisan cache:clear');
+
+	echo "<p>Refresh the page to continue.</p>";
+
 	return;
 }
 
