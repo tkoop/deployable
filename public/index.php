@@ -7,6 +7,40 @@ use Illuminate\Support\Facades\Artisan;
 define('LARAVEL_START', microtime(true));
 
 /*
+ * Deployable setup
+ */
+
+if (!file_exists('../database/database.sqlite')) {
+	copy('../database/empty.database.sqlite', '../database/database.sqlite');
+}
+
+function runThis($command) {
+	$output = [];
+	exec($command, $output);
+	echo "<div style='margin-top:12px'>$command</div>";
+	flush();
+	echo "<div>" . implode("<br>", $output) . "</div>";
+	flush();
+}
+
+if (!file_exists('../.env')) {
+	chdir("..");
+	runThis('pwd');
+	runThis('cp .env.example .env');
+	runThis('php artisan cache:clear');
+	runThis('php artisan key:generate');
+	runThis('composer install');
+	runThis('npm ci');
+	echo "<p>Refresh the page to continue.</p>";
+
+	$env = file_get_contents('.env');
+	$env = str_replace('APP_URL=', 'APP_URL=http://' . $_SERVER["HTTP_HOST"], $env);
+	file_put_contents('.env', $env);
+	return;
+}
+
+
+/*
 |--------------------------------------------------------------------------
 | Check If The Application Is Under Maintenance
 |--------------------------------------------------------------------------
@@ -44,37 +78,6 @@ require __DIR__ . '/../vendor/autoload.php';
 | to this client's browser, allowing them to enjoy our application.
 |
 */
-
-if (!file_exists('../database/database.sqlite')) {
-	copy('../database/empty.database.sqlite', '../database/database.sqlite');
-}
-
-function runThis($command) {
-	$output = [];
-	exec($command, $output);
-	echo "<div style='margin-top:12px'>$command</div>";
-	flush();
-	echo "<div>" . implode("<br>", $output) . "</div>";
-	flush();
-}
-
-if (!file_exists('../.env')) {
-	chdir("..");
-	runThis('pwd');
-	runThis('cp .env.example .env');
-	runThis('php artisan cache:clear');
-	runThis('php artisan key:generate');
-	runThis('composer install');
-	runThis('npm ci');
-	echo "<p>Refresh the page to continue.</p>";
-
-	$env = file_get_contents('.env');
-	$env = str_replace('APP_URL=', 'APP_URL=http://' . $_SERVER["HTTP_HOST"], $env);
-	file_put_contents('.env', $env);
-	return;
-}
-
-
 
 $app = require_once __DIR__ . '/../bootstrap/app.php';
 
