@@ -17,8 +17,8 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
+if (file_exists($maintenance = __DIR__ . '/../storage/framework/maintenance.php')) {
+	require $maintenance;
 }
 
 /*
@@ -32,7 +32,7 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 |
 */
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -46,19 +46,42 @@ require __DIR__.'/../vendor/autoload.php';
 */
 
 if (!file_exists('../database/database.sqlite')) {
-    touch('../database/database.sqlite');
+	copy('../database/empty.database.sqlite', '../database/database.sqlite');
+}
+
+function runThis($command) {
+	$output = [];
+	exec($command, $output);
+	echo "<div style='margin-top:12px'>$command</div>";
+	flush();
+	echo "<div>" . implode("<br>", $output) . "</div>";
+	flush();
 }
 
 if (!file_exists('../.env')) {
-    copy('../.env.example', '../.env');
+	chdir("..");
+	runThis('pwd');
+	runThis('cp .env.example .env');
+	runThis('php artisan cache:clear');
+	runThis('php artisan key:generate');
+	runThis('composer install');
+	runThis('npm ci');
+	echo "<p>Refresh the page to continue.</p>";
+
+	$env = file_get_contents('.env');
+	$env = str_replace('APP_URL=', 'APP_URL=http://' . $_SERVER["HTTP_HOST"], $env);
+	file_put_contents('.env', $env);
+	return;
 }
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+
+
+$app = require_once __DIR__ . '/../bootstrap/app.php';
 
 $kernel = $app->make(Kernel::class);
 
 $response = $kernel->handle(
-    $request = Request::capture()
+	$request = Request::capture()
 )->send();
 
 $kernel->terminate($request, $response);
