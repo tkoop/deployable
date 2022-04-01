@@ -17,14 +17,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// if (SetupController::needsSetup()) {
-//     Route::get('setup', [SetupController::class, 'view']);
-//     Route::post('setup', [SetupController::class, 'setup']);
-//     Route::fallback(function() {
-//         return redirect("/setup");
-//     });
-//     return;
-// }
+if (SetupController::needsSetup()) {
+    Route::get('setup', [SetupController::class, 'view']);
+    Route::post('setup', [SetupController::class, 'setup']);
+    Route::fallback(function() {
+        return redirect("/setup");
+    });
+    return;
+}
 
 Route::any('/hook/{slug}', [HookController::class, 'run']);
 
