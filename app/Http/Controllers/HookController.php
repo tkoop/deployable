@@ -73,6 +73,6 @@ class HookController extends Controller {
 		$hook->script = str_replace("\r", "", request("script"));
 		$hook->save();
 
-		return redirect('/hook/' . $hook->id)->withStatus("Hook was saved.");
+		return redirect('/hook/' . $hook->id . '/edit')->withStatus("Hook was saved.");
 	}
 }
