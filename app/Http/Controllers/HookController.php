@@ -19,7 +19,7 @@ class HookController extends Controller {
 
 	public function viewNew() {
 		$slug = rand(0, 99999999) . rand(0, 99999999);
-		$baseURL = url('hook');
+		$baseURL = url('run');
 
 		return view('newHook', ["slug" => $slug, "baseURL" => $baseURL]);
 	}
@@ -48,7 +48,7 @@ class HookController extends Controller {
 	}
 
 	public function viewEdit(Hook $hook) {
-		return view('hookEdit', ["hook" => $hook, "baseURL" => url('hook')]);
+		return view('hookEdit', ["hook" => $hook, "baseURL" => url('run')]);
 	}
 
 	public function deployments(Hook $hook) {

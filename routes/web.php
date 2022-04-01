@@ -26,7 +26,7 @@ if (SetupController::needsSetup()) {
     return;
 }
 
-Route::any('/hook/{slug}', [HookController::class, 'run']);
+Route::any('/run/{slug}', [HookController::class, 'run']);
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'view'])->name('dashboard');
