@@ -35,7 +35,7 @@ class HookController extends Controller {
 			"slug" => request("slug"),
 		]);
 
-		return redirect('/hook/' . $hook->id);
+		return redirect('/hook/' . $hook->id . '/view');
 	}
 
 	public function deploy(Hook $hook) {

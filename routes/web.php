@@ -26,7 +26,7 @@ use Illuminate\Support\Facades\Route;
 //     return;
 // }
 
-Route::get('/hook/{slug}', [HookController::class, 'run']);
+Route::any('/hook/{slug}', [HookController::class, 'run']);
 
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/', [DashboardController::class, 'view'])->name('dashboard');
