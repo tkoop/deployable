@@ -1,7 +1,7 @@
 <x-hook-layout :hook='$hook'>
-	<x-slot name="title">{{ $hook->name }} - Edit</x-slot>
+	<x-slot name="title">{{ $hook->name }} - edit</x-slot>
 
-	<x-slot name="header">{{ $hook->name }} - Edit</x-slot>
+	<x-slot name="header">{{ $hook->name }} - edit</x-slot>
 
 
 	<form method="post">

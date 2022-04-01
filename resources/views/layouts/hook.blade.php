@@ -34,7 +34,8 @@
 						<div>Deployments</div>
 
 						<x-button-link href="/deployment/{{ $hook->deployments()->latest()->first()->id }}" class="w-full mb-2">
-							Latest
+							Latest<br>
+							<div style="font-size: 0.75em;">{{ $hook->deployments()->latest()->first()->created_at->diffForHumans() }}</div>
 						</x-button-link>
 
 						<x-button-link href="/hook/{{ $hook->id }}/deployments" class="w-full mb-2">All</x-button-link>
