@@ -36,7 +36,7 @@ class DeploymentManager {
 		file_put_contents("{$path}/script.sh", $this->makeScript());
 		exec("chmod u+x {$path}/script.sh");
 
-		$command = "{$path}/script.sh > {$path}/output.txt &";
+		$command = "{$path}/script.sh > {$path}/output.txt 2>&1 &";
 		Log::debug($command);
 		exec($command);
 	}
