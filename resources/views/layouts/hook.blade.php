@@ -23,6 +23,15 @@
 
 					<x-button-link href="/hook/{{ $hook->id }}/edit" class="w-full mb-2">Edit</x-button-link>
 
+					@if ($hook->envFile()->directoryExists())
+						<x-button-link href="/hook/{{ $hook->id }}/env" class="w-full mb-2">Environment</x-button-link>
+					@else
+						<div class="w-full mb-2">
+							<x-button-light class="w-full" disabled>Environment</x-button-light>
+							<div class="mt-1 text-xs text-gray-500">No project directory yet.</div>
+						</div>
+					@endif
+
 					<div class="w-full mb-2">
 						<form method="post" action="/hook/{{ $hook->id }}/deploy">
 							@csrf

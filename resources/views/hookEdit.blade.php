@@ -21,9 +21,20 @@
 		</div>
 
 		<div class="mb-5">
+			<label>Project Directory</label><br>
+			<x-input name="directory" type="text" class="w-full font-mono" value="{{ old('directory', $hook->directory) }}"
+				placeholder="/var/www/example" /><br>
+			@if ($hook->envFile()->directoryExists())
+				<div class="text-gray-400">Found on this server.  Edit its .env in the Environment tab.</div>
+			@else
+				<div class="text-red-500">This directory doesn't exist yet, so the .env can't be edited until it does.</div>
+			@endif
+		</div>
+
+		<div class="mb-5">
 			<label>Script</label><br>
 			<x-textarea name="script" type="text" style="min-height:200px" class="w-full">
-				{{ old('slug', $hook->script) }}</x-textarea>
+				{{ old('script', $hook->script) }}</x-textarea>
 		</div>
 
 		<div class="flex justify-between">

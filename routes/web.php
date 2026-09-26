@@ -37,6 +37,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/hook/{hook}/edit', [HookController::class, 'viewEdit']);
     Route::post('/hook/{hook}/edit', [HookController::class, 'doEdit']);
     Route::get('/hook/{hook}/deployments', [HookController::class, 'deployments']);
+    Route::get('/hook/{hook}/env', [HookController::class, 'viewEnv']);
+    Route::post('/hook/{hook}/env', [HookController::class, 'doEnv']);
 
     Route::get('/deployment/{deployment}', [DeploymentController::class, 'view']);
 

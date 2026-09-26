@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Helpers\DeploymentManager;
+use App\Helpers\EnvFile;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,10 @@ class Hook extends Model {
 
 	public function start(): Deployment {
 		return DeploymentManager::start($this);
+	}
+
+	public function envFile(): EnvFile {
+		return EnvFile::forHook($this);
 	}
 
 	/**

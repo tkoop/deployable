@@ -8,6 +8,14 @@
             <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
 
+                    @if (session()->has('errors') || session()->has('status'))
+                        <!-- Session Status -->
+                        <x-auth-session-status class="mb-4" :status="session('status')" />
+
+                        <!-- Validation Errors -->
+                        <x-auth-validation-errors class="mb-4" :status="session('errors')" />
+                    @endif
+
                     <form method="post">
                         @csrf
 
@@ -22,6 +30,14 @@
                                 onkeydown="return slugTest(event)" onkeyup="updateSlug(this)" /><br>
                             <div class="text-gray-400">The hook will be {{ $baseURL }}/<span
                                     id="slug">{{ old('slug', $slug) }}</div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label>Project Directory</label><br>
+                            <x-input name="directory" type="text" class="w-full font-mono"
+                                value="{{ old('directory') }}" placeholder="/var/www/example" /><br>
+                            <div class="text-gray-400">The full path to the directory this project is deployed into.  Its
+                                .env file can be edited from the project's Environment tab.</div>
                         </div>
 
 
