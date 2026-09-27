@@ -35,7 +35,10 @@
 			}
 
 			var box = document.getElementById("autoRefresh");
-			box.checked = localStorage.getItem(key) === "1";
+			var stored = localStorage.getItem(key);
+
+			// On by default, until somebody ticks it off.
+			box.checked = stored === null ? true : stored === "1";
 
 			box.addEventListener("change", function() {
 				localStorage.setItem(key, box.checked ? "1" : "0");
