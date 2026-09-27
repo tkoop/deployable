@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ConfigCache;
 use App\Models\Hook;
 use Illuminate\Http\Request;
 
@@ -83,7 +84,21 @@ class HookController extends Controller {
 			return back()->withErrors(["env" => "Couldn't write the .env file.  Is the directory writable?"]);
 		}
 
-		return redirect('/hook/' . $hook->id . '/env')->withStatus("Environment file was saved.");
+		$redirect = redirect('/hook/' . $hook->id . '/env')->withStatus("Environment file was saved.");
+
+		if (request()->has("refreshConfig")) {
+			$result = ConfigCache::forHook($hook)->refresh();
+
+			$redirect->with("configOutput", $result["output"]);
+
+			// The .env itself is safely on disk either way, so say so rather
+			// than implying the whole save failed.
+			if (!$result["success"]) {
+				$redirect->withErrors(["config" => "The .env was saved, but the config cache could not be rebuilt."]);
+			}
+		}
+
+		return $redirect;
 	}
 
 	public function doEdit(Hook $hook) {

@@ -29,6 +29,23 @@
 				autocapitalize="off" autocomplete="off">{{ old('env', $envFile->get()) }}</x-textarea>
 		</div>
 
+		@if (session()->has('configOutput'))
+			<div class="mb-5">
+				<div class="mb-1">Config cache output</div>
+				<div class="p-3 font-mono text-xs whitespace-pre-wrap bg-gray-100 rounded">{{ session('configOutput') }}</div>
+			</div>
+		@endif
+
+		<div class="mb-5">
+			<label class="flex items-start">
+				<x-checkbox name="refreshConfig" value="1" class="mt-1 mr-2" />
+				<span>
+					Also clear and rebuild the project's config cache
+					<div class="font-mono text-xs text-gray-400">php artisan config:clear &amp;&amp; php artisan config:cache</div>
+				</span>
+			</label>
+		</div>
+
 		<div class="flex justify-between">
 			<x-button>Save</x-button>
 		</div>
