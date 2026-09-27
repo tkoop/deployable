@@ -36,8 +36,9 @@
                             <label>Project Directory</label><br>
                             <x-input name="directory" type="text" class="w-full font-mono"
                                 value="{{ old('directory') }}" placeholder="/var/www/example" /><br>
-                            <div class="text-gray-400">The full path to the directory this project is deployed into.  Its
-                                .env file can be edited from the project's Environment tab.</div>
+                            <div class="text-gray-400">Optional.  The full path to the directory this project is deployed
+                                into.  Set it later if you like &mdash; it turns on the Environment tab, where the
+                                project's .env file can be edited.</div>
                         </div>
 
 

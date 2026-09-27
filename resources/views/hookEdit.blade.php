@@ -26,8 +26,10 @@
 				placeholder="/var/www/example" /><br>
 			@if ($hook->envFile()->directoryExists())
 				<div class="text-gray-400">Found on this server.  Edit its .env in the Environment tab.</div>
+			@elseif (blank($hook->directory))
+				<div class="text-gray-400">Optional.  Set this to turn on the Environment tab for the project's .env.</div>
 			@else
-				<div class="text-red-500">This directory doesn't exist yet, so the .env can't be edited until it does.</div>
+				<div class="text-red-500">This directory doesn't exist on this server, so the .env can't be edited until it does.</div>
 			@endif
 		</div>
 

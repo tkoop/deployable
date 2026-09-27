@@ -30,11 +30,16 @@ class HookController extends Controller {
 			"slug" => "required",
 		] + $this->directoryRules(), $this->messages());
 
-		$hook = Hook::create([
+		$attributes = [
 			"name" => request("name"),
 			"slug" => request("slug"),
-			"directory" => request("directory"),
-		]);
+		];
+
+		if (request()->filled("directory")) {
+			$attributes["directory"] = request("directory");
+		}
+
+		$hook = Hook::create($attributes);
 
 		return redirect('/hook/' . $hook->id . '/view');
 	}
@@ -96,26 +101,33 @@ class HookController extends Controller {
 		$hook->name = request("name");
 		$hook->slug = request("slug");
 		$hook->script = str_replace("\r", "", request("script"));
-		$hook->directory = request("directory");
+
+		if (request()->filled("directory")) {
+			$hook->directory = request("directory");
+		}
+
 		$hook->save();
 
 		return redirect('/hook/' . $hook->id . '/edit')->withStatus("Hook was saved.");
 	}
 
 	/**
-	 * The directory doesn't have to exist yet, but it does have to be a full
-	 * path, since there's no obvious working directory to resolve a relative
-	 * one against when the deploy script runs.
+	 * The directory is optional, and it isn't required to exist yet.  It does
+	 * have to be a full path if it's given, since there's no obvious working
+	 * directory to resolve a relative one against.
+	 *
+	 * Note that nothing here requires the column to exist: a form that predates
+	 * it won't send a directory at all, and callers skip the column entirely
+	 * when one wasn't sent, so saving still works before the migration runs.
 	 */
 	private function directoryRules(): array {
 		return [
-			"directory" => "required|starts_with:/",
+			"directory" => "nullable|starts_with:/",
 		];
 	}
 
 	private function messages(): array {
 		return [
-			"directory.required" => "A project directory is required.",
 			"directory.starts_with" => "The project directory must be a full path, like /var/www/example.",
 		];
 	}
