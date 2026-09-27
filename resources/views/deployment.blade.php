@@ -18,7 +18,7 @@
 		<div>{{ $deployment->created_at->diffForHumans() }}</div>
 	</div>
 
-	<div class="p-3 font-mono text-white whitespace-pre-wrap bg-black">{{ $deployment->manager()->getOutput() }}</div>
+	<div class="p-3 font-mono text-white whitespace-pre-wrap bg-black">{!! $deployment->manager()->getOutputHtml() !!}</div>
 
 	<script>
 		// Reload every few seconds while the deployment is still going, so the

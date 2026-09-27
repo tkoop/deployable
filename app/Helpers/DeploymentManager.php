@@ -21,6 +21,7 @@ class DeploymentManager {
 		$path = base_path();
 
 		return "#!/bin/bash\n" .
+			"export NO_COLOR=1\n" .
 			"cd ..\n" .
 			"php {$path}/artisan deploy:start {$this->deployment->id}\n" .
 			"echo \"Deployment started at `date`\"\n" .
@@ -41,9 +42,14 @@ class DeploymentManager {
 		exec($command);
 	}
 
-	public function getOutput() {
+	/**
+	 * The output as it should be shown in a browser.  Deploy scripts emit ANSI
+	 * escape codes; those colour codes become styled text, everything else is
+	 * dropped.
+	 */
+	public function getOutputHtml() {
 		if (file_exists($this->path() . "/output.txt")) {
-			return file_get_contents($this->path() . "/output.txt");
+			return AnsiToHtml::convert(file_get_contents($this->path() . "/output.txt"));
 		}
 		return "No output was created.";
 	}

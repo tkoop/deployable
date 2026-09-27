@@ -20,7 +20,7 @@
 
 
 		<div class="h-40 p-3 mb-3 overflow-auto font-mono text-white whitespace-pre-wrap bg-black">
-			{{ $deployment->manager()->getOutput() }}</div>
+			{!! $deployment->manager()->getOutputHtml() !!}</div>
 	@endforeach
 
 
