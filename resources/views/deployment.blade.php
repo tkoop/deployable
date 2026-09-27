@@ -6,7 +6,12 @@
 	<div class="flex">
 		<h2 class="mb-2 text-lg">{{ ucfirst($deployment->state) }}
 			@if ($deployment->state == 'started' || $deployment->state == 'running')
-				<x-button onclick="location.reload();">Refresh</x-button>
+				<x-button id="refreshButton" onclick="location.reload();">Refresh</x-button>
+
+				<label class="ml-3 text-sm font-normal text-gray-600">
+					<x-checkbox id="autoRefresh" class="mr-1 align-middle" />
+					Auto refresh
+				</label>
 			@endif
 		</h2>
 		<div class="flex-1"></div>
@@ -14,5 +19,34 @@
 	</div>
 
 	<div class="p-3 font-mono text-white whitespace-pre-wrap bg-black">{{ $deployment->manager()->getOutput() }}</div>
+
+	<script>
+		// Reload every few seconds while the deployment is still going, so the
+		// output grows on its own.  The page reloads itself, which would wipe
+		// an ordinary checkbox, so the choice is kept in localStorage.
+		(function() {
+			var key = "deployable.autoRefresh.deployment{{ $deployment->id }}";
+
+			// No Refresh button means it isn't running any more.  Drop the flag
+			// rather than leaving it to spring back on some later visit.
+			if (!document.getElementById("refreshButton")) {
+				localStorage.removeItem(key);
+				return;
+			}
+
+			var box = document.getElementById("autoRefresh");
+			box.checked = localStorage.getItem(key) === "1";
+
+			box.addEventListener("change", function() {
+				localStorage.setItem(key, box.checked ? "1" : "0");
+			});
+
+			setInterval(function() {
+				if (box.checked) {
+					location.reload();
+				}
+			}, 3000);
+		})();
+	</script>
 
 </x-hook-layout>
