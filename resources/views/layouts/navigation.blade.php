@@ -22,6 +22,9 @@
                         :active="request()->routeIs('adminer')">
                         {{ __('Database') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('api-tokens')" :active="request()->routeIs('api-tokens')">
+                        {{ __('API Tokens') }}
+                    </x-nav-link>
                 </div>
 
 
@@ -88,6 +91,9 @@
                 {{ __('Database') }}
             </x-responsive-nav-link>
 
+            <x-responsive-nav-link :href="route('api-tokens')" :active="request()->routeIs('api-tokens')">
+                {{ __('API Tokens') }}
+            </x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->

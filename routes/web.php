@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeploymentController;
 use App\Http\Controllers\HookController;
@@ -41,6 +42,10 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/hook/{hook}/env', [HookController::class, 'doEnv']);
 
     Route::get('/deployment/{deployment}', [DeploymentController::class, 'view']);
+
+    Route::get('/api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens');
+    Route::post('/api-tokens', [ApiTokenController::class, 'store']);
+    Route::post('/api-tokens/{id}/revoke', [ApiTokenController::class, 'destroy']);
 
     Route::get('setup', function() {
         return redirect('/');

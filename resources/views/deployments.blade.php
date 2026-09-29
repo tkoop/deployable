@@ -13,6 +13,9 @@
 			<h2 class="mb-2 text-lg">
 				{{ $deployment->created_at->isoFormat('LLLL') }}
 			   - {{ ucfirst($deployment->state) }}
+			   @if ($deployment->exit_code !== null)
+					<span class="text-sm font-normal text-gray-500">(exit code {{ $deployment->exit_code }})</span>
+			   @endif
 			</h2>
 			<div class="flex-1"></div>
 			<div>{{ $deployment->created_at->diffForHumans() }}</div>

@@ -10,9 +10,12 @@ class DeployEnded extends Command {
 	/**
 	 * The name and signature of the console command.
 	 *
+	 * Called from the EXIT trap in the generated deploy script, which passes
+	 * along the status the hook script exited with.
+	 *
 	 * @var string
 	 */
-	protected $signature = 'deploy:ended {deployment_id}';
+	protected $signature = 'deploy:ended {deployment_id} {exit_code=0}';
 
 	/**
 	 * The console command description.
@@ -37,9 +40,21 @@ class DeployEnded extends Command {
 	 */
 	public function handle() {
 		$deployment = Deployment::find($this->argument('deployment_id'));
-		$deployment->update(["state" => "done", "ended_at" => now()]);
 
-		Log::debug("deploy eneded " . $deployment->id);
+		if ($deployment == null) {
+			Log::warning("deploy ended called for missing deployment " . $this->argument('deployment_id'));
+			return self::FAILURE;
+		}
+
+		$exitCode = (int) $this->argument('exit_code');
+
+		$deployment->update([
+			"state" => $exitCode === 0 ? "done" : "failed",
+			"ended_at" => now(),
+			"exit_code" => $exitCode,
+		]);
+
+		Log::debug("deploy ended " . $deployment->id . " with status " . $exitCode);
 		return 0;
 	}
 }

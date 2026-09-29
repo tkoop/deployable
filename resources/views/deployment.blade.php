@@ -5,6 +5,9 @@
 
 	<div class="flex">
 		<h2 class="mb-2 text-lg">{{ ucfirst($deployment->state) }}
+			@if ($deployment->exit_code !== null)
+				<span class="text-sm font-normal text-gray-500">(exit code {{ $deployment->exit_code }})</span>
+			@endif
 			@if ($deployment->state == 'started' || $deployment->state == 'running')
 				<x-button id="refreshButton" onclick="location.reload();">Refresh</x-button>
 

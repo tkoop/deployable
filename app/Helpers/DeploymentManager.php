@@ -17,17 +17,40 @@ class DeploymentManager {
 		return storage_path("deployments/" . $this->deployment->id);
 	}
 
+	/**
+	 * The script that gets run for a deployment.
+	 *
+	 * The exit status is recorded by a trap on EXIT rather than by reading $?
+	 * after the hook script inline. A hook script is arbitrary bash, so it may
+	 * call exit itself, or turn on `set -e` and give up partway; either way the
+	 * trap still fires and the deployment still gets a verdict. Reading $?
+	 * directly would skip the recording whenever the script ended early, and
+	 * that is exactly the case worth knowing about.
+	 */
 	private function makeScript() {
 		$path = base_path();
 
-		return "#!/bin/bash\n" .
-			"export NO_COLOR=1\n" .
-			"cd ..\n" .
-			"php {$path}/artisan deploy:start {$this->deployment->id}\n" .
-			"echo \"Deployment started at `date`\"\n" .
-			$this->deployment->hook->script . "\n" .
-			"echo \"Deployment finished at `date`\"\n" .
-			"php {$path}/artisan deploy:end {$this->deployment->id} &";
+		$lines = [
+			"#!/bin/bash",
+			"export NO_COLOR=1",
+			"cd ..",
+			"",
+			"record_deploy_end() {",
+			"\t# \$? first, on its own line: nothing may run in between or it is",
+			"\t# no longer the script's exit status.",
+			"\tstatus=\$?",
+			"\techo \"Deployment finished at `date`\"",
+			"\tphp {$path}/artisan deploy:end {$this->deployment->id} \$status",
+			"}",
+			"trap record_deploy_end EXIT",
+			"",
+			"php {$path}/artisan deploy:start {$this->deployment->id}",
+			"echo \"Deployment started at `date`\"",
+			"",
+			$this->deployment->hook->script,
+		];
+
+		return implode("\n", $lines) . "\n";
 	}
 
 	public function runScript() {
