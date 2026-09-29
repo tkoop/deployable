@@ -38,7 +38,13 @@ return [
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DATABASE_URL'),
-            'database' => database_path(env('DB_DATABASE', 'database.sqlite')),
+            // ':memory:' is a SQLite keyword, not a filename, so it has to
+            // bypass database_path(). The test suite relies on that: an
+            // in-memory database is private to the process, so two test runs
+            // can't corrupt each other's migrations.
+            'database' => env('DB_DATABASE') === ':memory:'
+                ? ':memory:'
+                : database_path(env('DB_DATABASE', 'database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
         ],

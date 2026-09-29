@@ -75,7 +75,7 @@ class AuthenticationTest extends TestCase {
 	 * the app here: refreshApplication() and RefreshDatabase don't mix, and the
 	 * reboot leaks into later tests. Asserting the mechanism instead is stable.
 	 */
-public function test_the_endpoint_is_not_dependent_on_the_web_route_file(): void {
+	public function test_the_endpoint_is_not_dependent_on_the_web_route_file(): void {
 		$this->assertFileExists(base_path("routes/ai.php"));
 
 		$route = collect(app("router")->getRoutes()->getRoutes())
