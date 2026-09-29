@@ -18,15 +18,20 @@
 	<div class="mx-auto my-6 max-w-7xl sm:px-6 lg:px-8">
 
 		@if (session()->has('newToken'))
-			<div class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg">
+			<div class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg" x-data="{ copied: false, token: @js(session('newToken')) }">
 				<div class="p-6 bg-white border-b border-gray-200">
 					<h3 class="mb-2 text-lg font-medium text-gray-900">Your new token</h3>
 					<p class="mb-3 text-sm text-gray-600">
-						Copy this now. Only a hash is stored, so it can't be shown again — if you lose it, revoke this
-						token and create another.
+						Copy this now. Only a hash is stored, so it can't be shown again — if you lose it, use
+						<strong>Rotate</strong> on the token below to mint a replacement.
 					</p>
-					<div class="p-3 font-mono text-sm break-all bg-gray-100 rounded">
-						{{ session('newToken') }}
+					<div class="flex items-start gap-2">
+						<div class="grow p-3 font-mono text-sm break-all bg-gray-100 rounded">
+							{{ session('newToken') }}
+						</div>
+						<x-button type="button" class="shrink-0"
+							@click="navigator.clipboard.writeText(token); copied = true; setTimeout(() => copied = false, 2000)"
+							x-text="copied ? 'Copied' : 'Copy'">Copy</x-button>
 					</div>
 				</div>
 			</div>
@@ -86,10 +91,18 @@
 									<td class="py-2 pr-4">{{ $token->created_at->diffForHumans() }}</td>
 									<td class="py-2 pr-4">{{ $token->last_used_at?->diffForHumans() ?? 'never' }}</td>
 									<td class="py-2">
-										<form method="post" action="/api-tokens/{{ $token->id }}/revoke">
-											@csrf
-											<x-button class="text-xs">Revoke</x-button>
-										</form>
+										<div class="flex items-center gap-2">
+											<form method="post" action="/api-tokens/{{ $token->id }}/rotate"
+												onsubmit="return confirm('Rotate &quot;{{ $token->name }}&quot;? The current token stops working immediately.')">
+												@csrf
+												<x-button class="text-xs" title="Issue a new token value, invalidating the old one">Rotate</x-button>
+											</form>
+											<form method="post" action="/api-tokens/{{ $token->id }}/revoke"
+												onsubmit="return confirm('Revoke &quot;{{ $token->name }}&quot;? This cannot be undone.')">
+												@csrf
+												<x-button class="text-xs" title="Delete this token for good">Revoke</x-button>
+											</form>
+										</div>
 									</td>
 								</tr>
 							@endforeach

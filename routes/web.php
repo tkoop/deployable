@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/api-tokens', [ApiTokenController::class, 'index'])->name('api-tokens');
     Route::post('/api-tokens', [ApiTokenController::class, 'store']);
     Route::post('/api-tokens/{id}/revoke', [ApiTokenController::class, 'destroy']);
+    Route::post('/api-tokens/{id}/rotate', [ApiTokenController::class, 'rotate']);
 
     Route::get('setup', function() {
         return redirect('/');

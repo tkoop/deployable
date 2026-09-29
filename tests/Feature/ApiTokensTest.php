@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Js;
 use Tests\TestCase;
 
 class ApiTokensTest extends TestCase {
@@ -91,6 +92,29 @@ class ApiTokensTest extends TestCase {
 		])->assertUnauthorized();
 	}
 
+	/**
+	 * The copy button reads the secret out of x-data. A Blade directive placed
+	 * inside a component tag compiles to a literal attribute value instead, which
+	 * silently copies the raw expression rather than the token, so pin it down.
+	 */
+	public function test_the_copy_button_carries_the_real_token(): void {
+		$admin = $this->admin();
+
+		$this->actingAs($admin)->post("/api-tokens", ["name" => "laptop"]);
+
+		$plainText = session("newToken");
+
+		$html = $this->actingAs($admin)->get("/api-tokens")->getContent();
+
+		// Nothing left uncompiled.
+		$this->assertStringNotContainsString("@js(", $html);
+
+		// The secret reaches the browser as a JS string literal, not as markup.
+		$this->assertStringContainsString("token: ".Js::from($plainText)->toHtml(), $html);
+
+		$this->assertStringContainsString("navigator.clipboard.writeText(token)", $html);
+	}
+
 	public function test_a_token_needs_a_name(): void {
 		$this->actingAs($this->admin())
 			->post("/api-tokens", ["name" => ""])
@@ -141,6 +165,111 @@ class ApiTokensTest extends TestCase {
 		$this->actingAs($admin)->post("/api-tokens/{$otherId}/revoke");
 
 		$this->assertDatabaseHas("personal_access_tokens", ["name" => "theirs"]);
+	}
+
+	public function test_the_admin_can_rotate_a_token(): void {
+		$admin = $this->admin();
+		$id = $admin->createToken("laptop")->accessToken->id;
+
+		$response = $this->actingAs($admin)->post("/api-tokens/{$id}/rotate");
+
+		$response->assertRedirect("/api-tokens");
+
+		$plainText = session("newToken");
+
+		$this->assertNotNull($plainText);
+		$this->assertStringContainsString("|", $plainText);
+
+		// The replacement keeps the name, so the row is still recognisable.
+		$this->actingAs($admin)
+			->get("/api-tokens")
+			->assertOk()
+			->assertSee($plainText, escape: false)
+			->assertSee("laptop");
+	}
+
+	/**
+	 * Rotation is only a recovery path if the old secret actually dies.
+	 */
+	public function test_rotating_invalidates_the_old_token(): void {
+		$admin = $this->admin();
+		$old = $admin->createToken("laptop")->plainTextToken;
+		$id = $admin->tokens()->first()->id;
+
+		$this->actingAs($admin)->post("/api-tokens/{$id}/rotate");
+
+		$this->app["auth"]->forgetGuards();
+
+		$this->postJson("/mcp", [
+			"jsonrpc" => "2.0",
+			"id" => 1,
+			"method" => "tools/list",
+		], [
+			"Accept" => "application/json, text/event-stream",
+			"Authorization" => "Bearer {$old}",
+		])->assertUnauthorized();
+
+		// And the new one works.
+		$this->app["auth"]->forgetGuards();
+
+		$this->postJson("/mcp", [
+			"jsonrpc" => "2.0",
+			"id" => 1,
+			"method" => "tools/list",
+		], [
+			"Accept" => "application/json, text/event-stream",
+			"Authorization" => "Bearer ".session("newToken"),
+		])->assertOk();
+	}
+
+	/**
+	 * Rotating must not leave a second copy of the token behind.
+	 */
+	public function test_rotating_replaces_rather_than_adds(): void {
+		$admin = $this->admin();
+		$id = $admin->createToken("laptop")->accessToken->id;
+
+		$this->actingAs($admin)->post("/api-tokens/{$id}/rotate");
+
+		$this->assertDatabaseCount("personal_access_tokens", 1);
+	}
+
+	/**
+	 * A rotation is a new secret for the same client, so a scoped-down token
+	 * shouldn't silently regain full access by being rotated.
+	 */
+	public function test_rotating_preserves_abilities(): void {
+		$admin = $this->admin();
+		$id = $admin->tokens()->create([
+			"name" => "readonly",
+			"token" => hash("sha256", "irrelevant"),
+			"abilities" => ["deploy:read"],
+		])->id;
+
+		$this->actingAs($admin)->post("/api-tokens/{$id}/rotate");
+
+		$abilities = $admin->tokens()->first()->abilities;
+
+		$this->assertSame(["deploy:read"], $abilities);
+	}
+
+	public function test_rotating_only_reaches_your_own_tokens(): void {
+		$admin = $this->admin();
+		$other = User::create(["name" => "Someone Else"]);
+		$otherId = $other->createToken("theirs")->accessToken->id;
+
+		$this->actingAs($admin)->post("/api-tokens/{$otherId}/rotate");
+
+		$this->assertDatabaseHas("personal_access_tokens", ["name" => "theirs"]);
+		$this->assertNull(session("newToken"));
+	}
+
+	public function test_rotating_an_unknown_token_is_handled(): void {
+		$this->actingAs($this->admin())
+			->post("/api-tokens/999/rotate")
+			->assertRedirect("/api-tokens");
+
+		$this->assertNull(session("newToken"));
 	}
 
 	public function test_the_dashboard_links_to_the_page(): void {

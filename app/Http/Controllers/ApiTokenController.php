@@ -42,4 +42,31 @@ class ApiTokenController extends Controller {
 
 		return redirect("/api-tokens")->with("status", "Token revoked.");
 	}
+
+	/**
+	 * Replace a token's secret, keeping its name, abilities and expiry.
+	 *
+	 * Only the hash is stored, so a lost token can't be read back — this is the
+	 * way out. The old secret stops working immediately, which is the point:
+	 * rotate when you suspect the old one is compromised, not just misplaced.
+	 */
+	public function rotate(Request $request, int $id): RedirectResponse {
+		$token = $request->user()->tokens()->find($id);
+
+		if ($token == null) {
+			return redirect("/api-tokens")->with("status", "Token not found.");
+		}
+
+		$abilities = $token->abilities ?: ["*"];
+		$expiresAt = $token->expires_at;
+		$name = $token->name;
+
+		$token->delete();
+
+		$replacement = $request->user()->createToken($name, $abilities, $expiresAt);
+
+		return redirect("/api-tokens")
+			->with("newToken", $replacement->plainTextToken)
+			->with("status", "Token rotated. Its old value no longer works.");
+	}
 }
