@@ -38,7 +38,8 @@
 
 		<div class="mb-5">
 			<label class="flex items-start">
-				<x-checkbox name="refreshConfig" value="1" class="mt-1 mr-2" />
+				<input type="hidden" name="refreshConfig" value="0">
+				<x-checkbox name="refreshConfig" value="1" class="mt-1 mr-2" @if(old('refreshConfig', '1') == '1') checked @endif />
 				<span>
 					Also clear and rebuild the project's config cache
 					<div class="font-mono text-xs text-gray-400">php artisan config:clear &amp;&amp; php artisan config:cache</div>

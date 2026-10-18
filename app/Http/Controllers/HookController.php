@@ -86,7 +86,13 @@ class HookController extends Controller {
 
 		$redirect = redirect('/hook/' . $hook->id . '/env')->withStatus("Environment file was saved.");
 
-		if (request()->has("refreshConfig")) {
+		// The checkbox defaults to on, so an absent value (e.g. an older
+		// client) is treated as "refresh".  An explicit "0" still opts out.
+		$refreshConfig = request()->has("refreshConfig")
+			? request()->boolean("refreshConfig")
+			: true;
+
+		if ($refreshConfig) {
 			$result = ConfigCache::forHook($hook)->refresh();
 
 			$redirect->with("configOutput", $result["output"]);
