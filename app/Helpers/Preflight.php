@@ -589,7 +589,7 @@ class Preflight {
 	private static function socketCheck(string $version): Check {
 		$socket = self::phpSocket($version);
 
-		if (is_file($socket)) {
+		if (file_exists($socket)) {
 			return Check::pass("php_socket", "PHP {$version} is running");
 		}
 
