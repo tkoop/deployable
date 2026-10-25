@@ -4,7 +4,7 @@ Documentation=https://deployable.timkoop.com
 
 [Path]
 # Any file here appearing, vanishing or being renamed re-runs the validator.
-PathChanged=/etc/apache2/deployable
+PathChanged=/var/www/deployable.timkoop.com/storage/app/apache/vhosts
 Unit=deployable-vhost.service
 
 [Install]

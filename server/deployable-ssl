@@ -21,8 +21,8 @@ import subprocess
 import tempfile
 from datetime import datetime, timezone
 
-REQ_DIR = "/etc/deployable/ssl-requests"
-RESULT_DIR = "/etc/deployable/ssl-results"
+REQ_DIR = "/var/www/deployable.timkoop.com/storage/app/apache/ssl-requests"
+RESULT_DIR = "/var/www/deployable.timkoop.com/storage/app/apache/ssl-results"
 VHOST_DIR = "/etc/apache2/deployable"
 CERTBOT = "/snap/bin/certbot"
 

@@ -23,14 +23,14 @@
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-INCLUDE='IncludeOptional /etc/apache2/deployable/*.conf'
+INCLUDE='IncludeOptional /var/www/deployable.timkoop.com/storage/app/apache/vhosts/*.conf'
 
 echo "Directories"
-install -d -m 0755 -o www-data -g www-data /etc/apache2/deployable
-install -d -m 0755 -o www-data -g www-data /etc/deployable/ssl-requests
-install -d -m 0755 -o root    -g root    /etc/deployable/ssl-results
+install -d -m 0755 -o www-data -g www-data /var/www/deployable.timkoop.com/storage/app/apache/vhosts
+install -d -m 0755 -o www-data -g www-data /var/www/deployable.timkoop.com/storage/app/apache/ssl-requests
+install -d -m 0755 -o root    -g root    /var/www/deployable.timkoop.com/storage/app/apache/ssl-results
 install -d -m 0755 -o root    -g root    /var/lib/deployable
-echo "  /etc/apache2/deployable (www-data), /etc/deployable/ssl-{requests,results}, /var/lib/deployable"
+echo "  vhosts + ssl-requests + ssl-results under storage/app/apache, /var/lib/deployable"
 
 echo "Helper scripts"
 install -m 0755 "$HERE/deployable-vhost" /usr/local/sbin/deployable-vhost

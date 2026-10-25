@@ -34,7 +34,7 @@ import subprocess
 import tempfile
 from datetime import datetime, timezone
 
-VHOST_DIR = "/etc/apache2/deployable"
+VHOST_DIR = "/var/www/deployable.timkoop.com/storage/app/apache/vhosts"
 STATE_DIR = "/var/lib/deployable"
 GOOD_DIR = os.path.join(STATE_DIR, "vhost-good")
 RESULT_PATH = os.path.join(STATE_DIR, "last-reload.json")

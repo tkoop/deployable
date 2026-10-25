@@ -3,7 +3,7 @@ Description=Watch Deployable's certificate request inbox
 Documentation=https://deployable.timkoop.com
 
 [Path]
-PathChanged=/etc/deployable/ssl-requests
+PathChanged=/var/www/deployable.timkoop.com/storage/app/apache/ssl-requests
 Unit=deployable-ssl.service
 
 [Install]
