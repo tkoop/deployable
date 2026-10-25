@@ -1,0 +1,10 @@
+[Unit]
+Description=Request the Let's Encrypt certificates Deployable asked for
+Documentation=https://deployable.timkoop.com
+After=network-online.target apache2.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/deployable-ssl
+TimeoutStartSec=300

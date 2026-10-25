@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeploymentController;
 use App\Http\Controllers\HookController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -40,6 +41,14 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/hook/{hook}/deployments', [HookController::class, 'deployments']);
     Route::get('/hook/{hook}/env', [HookController::class, 'viewEnv']);
     Route::post('/hook/{hook}/env', [HookController::class, 'doEnv']);
+
+    // The site a hook's directory is served as. Every route is scoped to the
+    // hook on purpose: there is no /sites index and no way to reach a site
+    // without the hook it belongs to.
+    Route::get('/hook/{hook}/site', [SiteController::class, 'view']);
+    Route::post('/hook/{hook}/site', [SiteController::class, 'save']);
+    Route::post('/hook/{hook}/site/action', [SiteController::class, 'action']);
+    Route::post('/hook/{hook}/site/connect', [SiteController::class, 'connect']);
 
     Route::get('/deployment/{deployment}', [DeploymentController::class, 'view']);
 

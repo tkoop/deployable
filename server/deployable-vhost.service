@@ -1,0 +1,9 @@
+[Unit]
+Description=Validate Deployable's Apache drop-in configs and reload Apache
+Documentation=https://deployable.timkoop.com
+After=apache2.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/deployable-vhost
+TimeoutStartSec=180

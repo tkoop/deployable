@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Hook extends Model {
 	use HasFactory;
@@ -16,6 +17,16 @@ class Hook extends Model {
 
 	public function deployments(): HasMany {
 		return $this->hasMany(Deployment::class);
+	}
+
+	/**
+	 * The one Apache site this hook's directory is served as, if any.
+	 *
+	 * A hook may have none at all - plenty of hooks are just a deploy script -
+	 * but it can never have two: the site *is* what this directory is served as.
+	 */
+	public function site(): HasOne {
+		return $this->hasOne(Site::class);
 	}
 
 	public function start(): Deployment {

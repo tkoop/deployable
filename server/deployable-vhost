@@ -1,0 +1,329 @@
+#!/usr/bin/python3
+"""
+Validate the vhost files Deployable drops into /etc/apache2/deployable, then
+reload Apache so they take effect.
+
+deployable-vhost.service runs this as root, and deployable-vhost.path triggers
+that service whenever a file in the drop-in directory is created, renamed or
+removed. The web app writes those files as www-data and holds no privilege of
+its own, so everything it can be talked into doing passes through here first.
+
+Order of business:
+
+  1. Reject a file whose name isn't a hostname.conf.
+  2. Reject a config carrying directives that would hand a root shell to
+     whoever can write there - piped loggers, LoadModule, Include and friends.
+     apache2ctl configtest happily accepts every one of those, so it cannot be
+     the thing that stands between www-data and root.
+  3. apache2ctl configtest. Anything changed since the last good run that
+     breaks the test is moved aside as *.rejected, so whatever was already
+     working can still be loaded.
+  4. Reload Apache, snapshot the set that worked, and record the outcome in
+     /var/lib/deployable/last-reload.json for the web app to read.
+
+It exits non-zero only when Apache could not be brought to a consistent state;
+the web app reads the result file either way.
+"""
+
+import glob
+import json
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+from datetime import datetime, timezone
+
+VHOST_DIR = "/etc/apache2/deployable"
+STATE_DIR = "/var/lib/deployable"
+GOOD_DIR = os.path.join(STATE_DIR, "vhost-good")
+RESULT_PATH = os.path.join(STATE_DIR, "last-reload.json")
+DETAIL_PATH = os.path.join(STATE_DIR, "last-configtest.log")
+REJECT_LOG = os.path.join(STATE_DIR, "rejected.log")
+SIDECAR = ".rejected"
+
+APACHECTL = "/usr/sbin/apache2ctl"
+SYSTEMCTL = "/usr/bin/systemctl"
+
+# bible.timkoop.com-le-ssl.conf has to pass this too.
+NAME_RE = re.compile(
+    r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.conf$"
+)
+
+# The one Include a Let's Encrypt vhost needs, and nothing else: an Include
+# pointing at attacker-chosen territory is an arbitrary file read at best.
+ALLOWED_INCLUDE = "/etc/letsencrypt/options-ssl-apache.conf"
+
+LOG_DIRECTIVES = ("errorlog", "customlog", "transferlog")
+DENY_DIRECTIVES = (
+    "loadmodule",
+    "extfilterdefine",
+    "scriptalias",
+    "scriptaliasmatch",
+    "rewritemap",
+)
+
+
+def conf_files():
+    return sorted(glob.glob(os.path.join(VHOST_DIR, "*.conf")))
+
+
+def read(path):
+    with open(path, "r", errors="replace") as handle:
+        return handle.read()
+
+
+def atomic_write(path, contents, mode=0o644):
+    directory = os.path.dirname(path) or "."
+    fd, temp = tempfile.mkstemp(dir=directory, prefix=".tmp-")
+    try:
+        with os.fdopen(fd, "w") as handle:
+            handle.write(contents)
+        os.chmod(temp, mode)
+        os.replace(temp, path)
+    except Exception:
+        if os.path.exists(temp):
+            os.unlink(temp)
+        raise
+
+
+def violations(text):
+    """Why this config can't be left in a directory www-data can write to."""
+    found = []
+
+    for number, line in enumerate(text.splitlines(), 1):
+        stripped = line.strip()
+
+        # Comments can say anything; only real directives count.
+        if not stripped or stripped.startswith("#"):
+            continue
+
+        parts = stripped.split(None, 1)
+        head = parts[0].lower()
+        rest = parts[1] if len(parts) > 1 else ""
+
+        if head in DENY_DIRECTIVES:
+            found.append(f"line {number}: {parts[0]} is not allowed in a site config")
+        elif head in LOG_DIRECTIVES and "|" in stripped:
+            found.append(
+                f"line {number}: a piped log runs as root, so this would be a root "
+                "shell for whoever wrote the file"
+            )
+        elif head in ("include", "includeoptional") and rest != ALLOWED_INCLUDE:
+            found.append(f"line {number}: only Include {ALLOWED_INCLUDE} is allowed")
+
+    return found
+
+
+def configtest():
+    proc = subprocess.run([APACHECTL, "configtest"], capture_output=True, text=True)
+    output = (proc.stdout + proc.stderr).strip()
+
+    atomic_write(DETAIL_PATH, output + "\n", 0o644)
+
+    return proc.returncode == 0, output
+
+
+def changed_names():
+    """Basenames added, edited or deleted since the last good run."""
+    current = {os.path.basename(path): path for path in conf_files()}
+
+    try:
+        known = set(os.listdir(GOOD_DIR))
+    except FileNotFoundError:
+        known = set()
+
+    changed = set(current) | known
+
+    for name in sorted(set(current) & known):
+        if read(current[name]) == read(os.path.join(GOOD_DIR, name)):
+            changed.discard(name)
+
+    return changed
+
+
+def set_aside(path):
+    os.replace(path, path + SIDECAR)
+
+
+def restore(path):
+    sidecar = path + SIDECAR
+    if os.path.exists(sidecar):
+        os.replace(sidecar, path)
+
+
+def isolate(suspects):
+    """
+    Work out which changed file breaks the config test, and leave only that one
+    (or that lot, if no single file is to blame) moved aside.
+
+    Returns True when apache2ctl configtest passes with the culprits aside.
+    """
+    for path in suspects:
+        set_aside(path)
+        passed, _ = configtest()
+        if passed:
+            return True
+        restore(path)
+
+    # A pair written together can be bad as a pair even though each is fine
+    # alone, so try the lot before giving up.
+    for path in suspects:
+        set_aside(path)
+
+    passed, _ = configtest()
+    if passed:
+        return True
+
+    for path in suspects:
+        restore(path)
+
+    return False
+
+
+def snapshot():
+    if os.path.isdir(GOOD_DIR):
+        shutil.rmtree(GOOD_DIR)
+
+    os.makedirs(GOOD_DIR, exist_ok=True)
+
+    for path in conf_files():
+        shutil.copy2(path, os.path.join(GOOD_DIR, os.path.basename(path)))
+
+
+def previous_result():
+    try:
+        with open(RESULT_PATH) as handle:
+            return json.load(handle)
+    except (OSError, ValueError):
+        return {}
+
+
+def write_result(config_ok, reload_ok, message, rejected, reloaded_at):
+    payload = {
+        "ok": bool(config_ok and reload_ok),
+        "config_ok": bool(config_ok),
+        "reload_ok": bool(reload_ok),
+        "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        # Only moves when Apache was really told about the drop-in directory,
+        # so the web app can spot a file that has never been picked up.
+        "reloaded_at": reloaded_at,
+        "message": message,
+        "rejected": [{"file": name, "reason": reason} for name, reason in rejected],
+        "detail_file": DETAIL_PATH,
+    }
+
+    atomic_write(RESULT_PATH, json.dumps(payload, indent=2) + "\n", 0o644)
+
+
+def note_rejections(rejected):
+    if not rejected:
+        return
+
+    stamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+    with open(REJECT_LOG, "a") as handle:
+        for name, reason in rejected:
+            handle.write(f"{stamp}\t{name}\t{reason}\n")
+
+    os.chmod(REJECT_LOG, 0o644)
+
+
+def main():
+    os.makedirs(STATE_DIR, exist_ok=True)
+    os.makedirs(GOOD_DIR, exist_ok=True)
+
+    rejected = []
+
+    for path in conf_files():
+        reason = None
+
+        if not NAME_RE.match(os.path.basename(path)):
+            reason = "the file name isn't a hostname.conf"
+        else:
+            found = violations(read(path))
+            if found:
+                reason = "; ".join(found)
+
+        if reason:
+            set_aside(path)
+            rejected.append((os.path.basename(path) + SIDECAR, reason))
+
+    passed, output = configtest()
+
+    if not passed:
+        suspects = sorted(
+            os.path.join(VHOST_DIR, name)
+            for name in changed_names()
+            if os.path.exists(os.path.join(VHOST_DIR, name))
+        )
+
+        if suspects and isolate(suspects):
+            for path in suspects:
+                if os.path.exists(path + SIDECAR):
+                    rejected.append(
+                        (
+                            os.path.basename(path) + SIDECAR,
+                            "apache2ctl configtest failed with this file in place",
+                        )
+                    )
+            passed, output = configtest()
+
+    previous = previous_result()
+    reloaded_at = previous.get("reloaded_at")
+
+    if not passed:
+        # Nothing Deployable wrote is at fault. Leave Apache running what it
+        # already has rather than making a broken config somebody else's
+        # problem.
+        first_line = output.splitlines()[0] if output else "apache2ctl configtest failed"
+        note_rejections(rejected)
+        write_result(False, False, first_line, rejected, reloaded_at)
+        return 1
+
+    # A reload is only worth doing when something actually differs from the
+    # set Apache was last given. reloaded_at therefore means what it says:
+    # null until the drop-in directory has really been loaded once.
+    pending = changed_names()
+
+    if pending:
+        proc = subprocess.run(
+            [SYSTEMCTL, "reload", "apache2"], capture_output=True, text=True
+        )
+
+        if proc.returncode != 0:
+            detail = (proc.stdout + proc.stderr).strip()
+            note_rejections(rejected)
+            write_result(
+                True,
+                False,
+                f"Apache's config is valid, but the reload failed: {detail}",
+                rejected,
+                reloaded_at,
+            )
+            return 1
+
+        reloaded_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        snapshot()
+
+    if rejected:
+        names = ", ".join(name for name, _ in rejected)
+        message = f"Moved {names} aside."
+        if pending:
+            message += " Apache reloaded."
+    elif pending:
+        message = "Apache reloaded."
+    else:
+        message = (
+            "Nothing to reload: the drop-in directory already matches what "
+            "Apache is running."
+        )
+
+    note_rejections(rejected)
+    write_result(True, True, message, rejected, reloaded_at)
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

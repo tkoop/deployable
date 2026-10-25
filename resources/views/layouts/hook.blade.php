@@ -32,6 +32,11 @@
 						</div>
 					@endif
 
+					<!-- Always reachable: a hook with no directory still has an
+					     existing vhost it could adopt, and the page says what's
+					     missing rather than hiding behind a disabled button. -->
+					<x-button-link href="/hook/{{ $hook->id }}/site" class="w-full mb-2">Site</x-button-link>
+
 					<div class="w-full mb-2">
 						<form method="post" action="/hook/{{ $hook->id }}/deploy">
 							@csrf

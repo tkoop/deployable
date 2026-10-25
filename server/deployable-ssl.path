@@ -1,0 +1,10 @@
+[Unit]
+Description=Watch Deployable's certificate request inbox
+Documentation=https://deployable.timkoop.com
+
+[Path]
+PathChanged=/etc/deployable/ssl-requests
+Unit=deployable-ssl.service
+
+[Install]
+WantedBy=multi-user.target

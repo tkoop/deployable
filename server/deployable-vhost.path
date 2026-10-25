@@ -1,0 +1,11 @@
+[Unit]
+Description=Watch Deployable's Apache drop-in directory
+Documentation=https://deployable.timkoop.com
+
+[Path]
+# Any file here appearing, vanishing or being renamed re-runs the validator.
+PathChanged=/etc/apache2/deployable
+Unit=deployable-vhost.service
+
+[Install]
+WantedBy=multi-user.target

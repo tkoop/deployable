@@ -1,0 +1,168 @@
+#!/usr/bin/python3
+"""
+Ask Let's Encrypt for every certificate Deployable has requested.
+
+deployable-ssl.service runs this as root; deployable-ssl.path triggers it
+whenever a *.req file lands in /etc/deployable/ssl-requests, which is where the
+web app puts them. Each request comes back as a *.req-turned-*.json result in
+/etc/deployable/ssl-results, carrying the same nonce the request had so the web
+app can't mistake yesterday's outcome for today's.
+
+Only a domain that already has a live vhost in the drop-in directory is
+eligible: without that, anybody who can write a request file could ask this
+server to fetch certificates for any domain pointed at it.
+"""
+
+import glob
+import json
+import os
+import re
+import subprocess
+import tempfile
+from datetime import datetime, timezone
+
+REQ_DIR = "/etc/deployable/ssl-requests"
+RESULT_DIR = "/etc/deployable/ssl-results"
+VHOST_DIR = "/etc/apache2/deployable"
+CERTBOT = "/snap/bin/certbot"
+
+DOMAIN_RE = re.compile(
+    r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$"
+)
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+TIMEOUT_SECONDS = 180
+
+
+def atomic_write(path, contents, mode=0o644):
+    directory = os.path.dirname(path) or "."
+    fd, temp = tempfile.mkstemp(dir=directory, prefix=".tmp-")
+    try:
+        with os.fdopen(fd, "w") as handle:
+            handle.write(contents)
+        os.chmod(temp, mode)
+        os.replace(temp, path)
+    except Exception:
+        if os.path.exists(temp):
+            os.unlink(temp)
+        raise
+
+
+def check(request):
+    """Everything that has to be true before certbot is worth running."""
+    domain = str(request.get("domain") or "")
+    email = str(request.get("email") or "")
+    webroot = str(request.get("webroot") or "")
+
+    problems = []
+
+    if not DOMAIN_RE.match(domain):
+        problems.append(f"'{domain}' isn't a domain name.")
+    elif not os.path.isfile(os.path.join(VHOST_DIR, domain + ".conf")):
+        problems.append(
+            f"{domain} has no enabled vhost in {VHOST_DIR}, so there'd be "
+            "nothing for the Let's Encrypt check to reach. Enable the site "
+            "first."
+        )
+
+    if not EMAIL_RE.match(email):
+        problems.append(f"'{email}' isn't an email address Let's Encrypt can reach.")
+
+    if not webroot.startswith("/") or not os.path.isdir(webroot):
+        problems.append(f"The web root '{webroot}' isn't an absolute path to a directory.")
+
+    if not os.path.isfile(CERTBOT):
+        problems.append(f"certbot isn't installed - there's no {CERTBOT}.")
+
+    return problems
+
+
+def request_cert(domain, email, webroot):
+    proc = subprocess.run(
+        [
+            CERTBOT, "certonly",
+            "--webroot", "-w", webroot,
+            "-d", domain,
+            "--email", email,
+            "--cert-name", domain,
+            "--non-interactive",
+            "--agree-tos",
+            "--keep-until-expiring",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=TIMEOUT_SECONDS,
+    )
+
+    return proc.returncode == 0, (proc.stdout + proc.stderr).strip()
+
+
+def process(path):
+    try:
+        with open(path) as handle:
+            request = json.load(handle)
+    except (OSError, ValueError) as error:
+        # A malformed request is still answered, so the web app waiting on a
+        # nonce hears back instead of spinning until its timeout.
+        name = os.path.basename(path)[: -len(".req")]
+        name = name if DOMAIN_RE.match(name) else "unknown"
+        write_result(name, False, f"Could not read the request: {error}", "", None)
+        os.unlink(path)
+        return
+
+    domain = str(request.get("domain") or "")
+    nonce = str(request.get("nonce") or "")
+
+    problems = check(request)
+    if problems:
+        write_result(domain, False, "\n".join(problems), nonce, None)
+        os.unlink(path)
+        return
+
+    try:
+        ok, output = request_cert(
+            domain,
+            str(request.get("email") or ""),
+            str(request.get("webroot") or ""),
+        )
+    except subprocess.TimeoutExpired:
+        ok, output = False, f"certbot did not finish within {TIMEOUT_SECONDS} seconds."
+    except OSError as error:
+        ok, output = False, f"Could not run certbot: {error}"
+
+    write_result(domain, ok, output, nonce, {
+        "cert": f"/etc/letsencrypt/live/{domain}/fullchain.pem",
+        "key": f"/etc/letsencrypt/live/{domain}/privkey.pem",
+    } if ok else None)
+
+    os.unlink(path)
+
+
+def write_result(domain, ok, output, nonce, paths):
+    payload = {
+        "ok": bool(ok),
+        "nonce": nonce,
+        "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "message": output.splitlines()[-1] if output else "",
+        "output": output,
+        "paths": paths,
+    }
+
+    # The result directory belongs to root: the app reads it, and can neither
+    # create nor replace what's in it.
+    target = os.path.join(RESULT_DIR, f"{domain}.json")
+    atomic_write(target, json.dumps(payload, indent=2) + "\n", 0o644)
+
+
+def main():
+    os.makedirs(REQ_DIR, exist_ok=True)
+    os.makedirs(RESULT_DIR, exist_ok=True)
+
+    for path in sorted(glob.glob(os.path.join(REQ_DIR, "*.req"))):
+        process(path)
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
