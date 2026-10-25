@@ -78,18 +78,21 @@ class Preflight {
 			$checks[] = Check::pass("dropin_dir", "Site directory");
 		}
 
-		if (is_dir($dropin) && !is_writable($dropin)) {
+		if (is_dir($dropin)) {
 			$owner = self::ownerOf($dropin);
 
-			$checks[] = Check::fail(
-				"dropin_writable",
-				"Site directory is writable",
-				"Deployable runs as www-data, and {$dropin} belongs to {$owner}, so site configs can't be written.",
-				commands: ["sudo chown www-data:www-data {$dropin}"],
-				verify: "sudo -u www-data touch {$dropin}/.write-test && sudo rm -f {$dropin}/.write-test",
-			);
-		} else {
-			$checks[] = Check::pass("dropin_writable", "Site directory is writable");
+			if (!is_writable($dropin)) {
+				$checks[] = Check::fail(
+					"dropin_writable",
+					"Site directory is writable",
+					"Deployable runs as www-data but can't write to {$dropin} (it reports the directory as read-only).",
+					how: "The directory is owned by {$owner}. If that isn't www-data, fix the ownership first; otherwise the filesystem or mount is read-only for the web server and needs root attention.",
+					commands: ["sudo chown www-data:www-data {$dropin}"],
+					verify: "sudo -u www-data touch {$dropin}/.write-test && sudo rm -f {$dropin}/.write-test",
+				);
+			} else {
+				$checks[] = Check::pass("dropin_writable", "Site directory is writable");
+			}
 		}
 
 		// --- Apache is pointed at that directory ----------------------------
