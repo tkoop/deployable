@@ -1,9 +1,7 @@
 # Managed by Deployable for {{ $site->domain }}.
 # Saving the site in Deployable rewrites this file, so edit it there instead.
 #
-# {{ $site->type === 'php'
-#     ? "A .htaccess in " . $site->document_root . " applies to every request."
-#     : "This is a static site, so .htaccess files here are ignored." }}
+# {{ $site->type === 'php' ? "A .htaccess in " . $site->document_root . " applies to every request." : "This is a static site, so .htaccess files here are ignored." }}
 
 <VirtualHost *:80>
     ServerName {{ $site->domain }}
