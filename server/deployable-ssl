@@ -11,12 +11,18 @@ app can't mistake yesterday's outcome for today's.
 Only a domain that already has a live vhost in the drop-in directory is
 eligible: without that, anybody who can write a request file could ask this
 server to fetch certificates for any domain pointed at it.
+
+The request lists every name the site answers for. Each extra name has to
+appear on that vhost (ServerName or ServerAlias) and resolve in DNS; names
+that can't pass a Let's Encrypt challenge are left out of the certificate and
+reported, so one dead alias can't take the working names down with it.
 """
 
 import glob
 import json
 import os
 import re
+import socket
 import subprocess
 import tempfile
 from datetime import datetime, timezone
@@ -77,24 +83,111 @@ def check(request):
     return problems
 
 
-def request_cert(domain, email, webroot):
-    proc = subprocess.run(
-        [
-            CERTBOT, "certonly",
-            "--webroot", "-w", webroot,
-            "-d", domain,
-            "--email", email,
-            "--cert-name", domain,
-            "--non-interactive",
-            "--agree-tos",
-            "--keep-until-expiring",
-        ],
-        capture_output=True,
-        text=True,
-        timeout=TIMEOUT_SECONDS,
-    )
+def request_cert(domain, email, webroot, hosts):
+    command = [CERTBOT, "certonly", "--webroot", "-w", webroot]
+
+    for host in hosts:
+        command += ["-d", host]
+
+    command += [
+        "--email", email,
+        "--cert-name", domain,
+        "--non-interactive",
+        "--agree-tos",
+        "--keep-until-expiring",
+    ]
+
+    proc = subprocess.run(command, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
 
     return proc.returncode == 0, (proc.stdout + proc.stderr).strip()
+
+
+def hosts_from(request, domain):
+    """The names to certify: the primary domain first, then its vhost aliases."""
+    supplied = request.get("hosts")
+
+    if not isinstance(supplied, list):
+        supplied = [domain]
+
+    hosts = []
+
+    for host in supplied:
+        host = str(host).strip().lower()
+
+        if host and host not in hosts:
+            hosts.append(host)
+
+    if domain not in hosts:
+        hosts.insert(0, domain)
+
+    return hosts
+
+
+def names_on_vhost(path):
+    """ServerName and ServerAlias names from the vhost, lowercased."""
+    names = set()
+
+    try:
+        with open(path) as handle:
+            contents = handle.read()
+    except OSError:
+        return names
+
+    for line in contents.splitlines():
+        match = re.match(r"\s*Server(?:Name|Alias)\s+(\S.*)$", line, re.IGNORECASE)
+
+        if match:
+            names.update(token.lower() for token in match.group(1).split())
+
+    return names
+
+
+def resolves(host):
+    """True when the name currently has DNS, which a Let's Encrypt check needs."""
+    try:
+        socket.getaddrinfo(host, None, socket.AF_INET, socket.SOCK_STREAM)
+        return True
+    except socket.gaierror:
+        try:
+            socket.getaddrinfo(host, None, socket.AF_INET6, socket.SOCK_STREAM)
+            return True
+        except socket.gaierror:
+            return False
+
+
+def certifiable_hosts(request, domain):
+    """The names to put in the certificate, and why any others were left out.
+
+    A name that doesn't resolve, or isn't on the site's vhost, can't pass a
+    Let's Encrypt challenge - and one bad name fails the whole order, taking
+    every other name with it. Those get left out and reported instead.
+    """
+    vhost = os.path.join(VHOST_DIR, domain + ".conf")
+    allowed = names_on_vhost(vhost)
+    wanted = hosts_from(request, domain)
+
+    hosts, skipped = [], []
+
+    for host in wanted:
+        if host != domain:
+            if not DOMAIN_RE.match(host):
+                skipped.append(f"{host} isn't a domain name.")
+                continue
+
+            if host not in allowed:
+                skipped.append(f"{host} isn't an alias of {domain} in its vhost.")
+                continue
+
+        if not resolves(host):
+            skipped.append(
+                f"{host} has no DNS record yet, so Let's Encrypt can't reach it."
+                " Fix the DNS and request again."
+            )
+            continue
+
+        hosts.append(host)
+
+    return hosts, skipped
 
 
 def process(path):
@@ -119,16 +212,31 @@ def process(path):
         os.unlink(path)
         return
 
+    hosts, skipped = certifiable_hosts(request, domain)
+
+    if not hosts:
+        write_result(domain, False, "\n".join(
+            [f"No name for {domain} could pass a Let's Encrypt challenge."]
+            + skipped
+        ), nonce, None)
+        os.unlink(path)
+        return
+
     try:
         ok, output = request_cert(
             domain,
             str(request.get("email") or ""),
             str(request.get("webroot") or ""),
+            hosts,
         )
     except subprocess.TimeoutExpired:
         ok, output = False, f"certbot did not finish within {TIMEOUT_SECONDS} seconds."
     except OSError as error:
         ok, output = False, f"Could not run certbot: {error}"
+
+    if ok and skipped:
+        output = (output + "\n\nCertificate covers: " + ", ".join(hosts) +
+                  ". Left out (" + "; ".join(skipped) + ")").strip()
 
     write_result(domain, ok, output, nonce, {
         "cert": f"/etc/letsencrypt/live/{domain}/fullchain.pem",

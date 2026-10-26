@@ -187,6 +187,7 @@ class SslCertificates {
 
 		$payload = json_encode([
 			"domain" => $site->domain,
+			"hosts" => $site->allHosts(),
 			"email" => $site->ssl_email ?: null,
 			"webroot" => $site->document_root,
 			"nonce" => $nonce,
