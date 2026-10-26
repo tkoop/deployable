@@ -178,7 +178,7 @@ class Preflight {
 			$checks[] = Check::fail(
 				"pending_reload",
 				"Configs have been loaded",
-				"{count} has been written but Apache hasn't been told about {$names} yet.",
+				count($pending) . " config(s) have been written but Apache hasn't been told about {$names} yet.",
 				commands: ["sudo systemctl start " . self::validatorUnit()],
 				verify: "cat " . config("deployable.reload_result"),
 			);

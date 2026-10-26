@@ -68,7 +68,8 @@ install -m 0644 "$HERE/deployable-vhost.service" /etc/systemd/system/
 install -m 0644 "$HERE/deployable-ssl.path"      /etc/systemd/system/
 install -m 0644 "$HERE/deployable-ssl.service"   /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable --now deployable-vhost.path deployable-ssl.path
+systemctl restart deployable-vhost.path deployable-ssl.path
+systemctl enable deployable-vhost.path deployable-ssl.path
 systemctl is-enabled deployable-vhost.path deployable-ssl.path | sed 's/^/  /'
 
 echo "Certificate renewals"
