@@ -62,6 +62,10 @@ class Site extends Model {
 		return $this->apache()->path();
 	}
 
+	public function sslVhostPath(): string {
+		return $this->apache()->sslPath();
+	}
+
 	/**
 	 * All the host names this site answers on, primary domain first.
 	 *
