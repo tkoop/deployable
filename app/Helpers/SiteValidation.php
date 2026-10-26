@@ -9,7 +9,7 @@ namespace App\Helpers;
  * domain that's legal in one place and not the other is a site that half
  * works. The pattern is deliberately narrow: lowercase hostnames only, at
  * least two labels, no leading or trailing hyphen - which also means the name
- * is safe to use as a filename in /etc/apache2/deployable.
+ * is safe to use as a filename in the drop-in directory.
  */
 class SiteValidation {
 	public const DOMAIN_PATTERN = '/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/';
@@ -25,20 +25,48 @@ class SiteValidation {
 	 */
 	public static function rules(int|null $exceptSiteId = null): array {
 		$domain = ["required", "max:255", "regex:" . self::DOMAIN_PATTERN];
-
-		// SQLite doesn't care, but a domain twice in the table would mean two
-		// hooks claiming to serve the same name.
 		$domain[] = $exceptSiteId === null
 			? "unique:sites,domain"
 			: "unique:sites,domain,{$exceptSiteId}";
 
 		return [
 			"domain" => $domain,
+			"aliases" => ["nullable", "string"],
 			"document_root" => ["required", "max:255", "starts_with:/"],
 			"type" => ["required", "in:php,static"],
 			"php_version" => ["required_if:type,php", "max:16"],
 			"ssl_email" => ["nullable", "email", "max:255"],
 		];
+	}
+
+	/**
+	 * Turn whatever the form sent (textarea lines, commas, spaces) into a
+	 * clean list of domain strings.
+	 *
+	 * @return array<int, string>
+	 */
+	public static function normalizeAliases(mixed $input): array {
+		if (is_array($input)) {
+			$parts = $input;
+		} else {
+			$parts = preg_split('/[\s,]+/', (string) $input) ?: [];
+		}
+
+		$aliases = [];
+
+		foreach ($parts as $part) {
+			$part = strtolower(trim((string) $part));
+
+			if ($part === "" || !self::isDomain($part)) {
+				continue;
+			}
+
+			if (!in_array($part, $aliases, true)) {
+				$aliases[] = $part;
+			}
+		}
+
+		return $aliases;
 	}
 
 	/**

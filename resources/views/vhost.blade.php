@@ -5,6 +5,9 @@
 
 <VirtualHost *:80>
     ServerName {{ $site->domain }}
+@if (count($site->allHosts()) > 1)
+    ServerAlias {{ implode(' ', array_slice($site->allHosts(), 1)) }}
+@endif
     DocumentRoot "{{ $site->document_root }}"
 
     <Directory "{{ $site->document_root }}">

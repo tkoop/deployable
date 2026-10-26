@@ -643,21 +643,24 @@ class Preflight {
 			$site->sslVhostPath(),
 		]) : [];
 
-		$owner = ExistingVhosts::ownerOf($domain, $ignore);
+		// Check the primary domain and every alias for collisions.
+		foreach ($site->allHosts() as $host) {
+			$owner = ExistingVhosts::ownerOf($host, $ignore);
 
-		if ($owner !== null) {
-			$inDropin = str_starts_with($owner, rtrim(config("deployable.vhost_dir"), "/") . "/");
+			if ($owner !== null) {
+				$inDropin = str_starts_with($owner, rtrim(config("deployable.vhost_dir"), "/") . "/");
 
-			$problem = $inDropin
-				? "{$domain} is already served from {$owner}."
-				: "{$domain} is already declared in {$owner}, which Apache loads before anything Deployable writes.";
+				$problem = $inDropin
+					? "{$host} is already served from {$owner}."
+					: "{$host} is already declared in {$owner}, which Apache loads before anything Deployable writes.";
 
-			$how = $inDropin
-				? "Either edit that site instead, or delete it and create it again under this hook."
-				: "Two configs claiming one name is only a warning to Apache - the first one loaded wins, and the other silently never serves anything. " .
-					"Either pick another name, or bring that existing config under this hook from the \"Existing site on this server\" panel below.";
+				$how = $inDropin
+					? "Either edit that site instead, or delete it and create it again under this hook."
+					: "Two configs claiming one name is only a warning to Apache - the first one loaded wins, and the other silently never serves anything. " .
+						"Either pick another name, or bring that existing config under this hook from the \"Existing site on this server\" panel below.";
 
-			return Check::fail("domain_free", "Domain is free", $problem, how: $how);
+				return Check::fail("domain_free", "Domain is free", $problem, how: $how);
+			}
 		}
 
 		return Check::pass("domain_free", "Domain is free");

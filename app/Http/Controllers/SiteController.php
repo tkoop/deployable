@@ -37,6 +37,7 @@ class SiteController extends Controller {
 		);
 
 		$site->fill($validated);
+		$site->aliases = SiteValidation::normalizeAliases($request->input("aliases"));
 
 		$blockers = Check::blockers($site->preflight());
 
@@ -124,6 +125,7 @@ class SiteController extends Controller {
 		Site::create([
 			"hook_id" => $hook->id,
 			"domain" => $domain,
+			"aliases" => $this->sniffAliases($file, $domain),
 			"document_root" => ExistingVhosts::documentRootOf($file) ?: ($hook->directory ?: $dir),
 			"type" => $sniffed["type"],
 			"php_version" => $sniffed["php_version"],
@@ -281,6 +283,25 @@ class SiteController extends Controller {
 		}
 
 		return ["type" => "static", "php_version" => ""];
+	}
+
+	private function sniffAliases(string $file, string $primary): array {
+		$contents = (string) @file_get_contents($file);
+		$aliases = [];
+
+		if (preg_match_all('/^\s*ServerAlias\s+(.+)$/mi', $contents, $matches)) {
+			foreach ($matches[1] as $line) {
+				foreach (preg_split('/\s+/', trim($line)) ?: [] as $host) {
+					$host = strtolower(trim($host));
+
+					if ($host !== "" && $host !== strtolower($primary) && SiteValidation::isDomain($host)) {
+						$aliases[] = $host;
+					}
+				}
+			}
+		}
+
+		return array_values(array_unique($aliases));
 	}
 
 	private function flash(array $output) {

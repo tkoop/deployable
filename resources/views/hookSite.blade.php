@@ -56,7 +56,14 @@
 		</div>
 
 		<div class="mb-5">
-			<label>Document root</label><br>
+			<label>Aliases</label><br>
+			<x-textarea name="aliases" class="w-full font-mono" rows="3"
+				placeholder="www.example.com&#10;blog.example.com">{{ old('aliases', $subject->aliasesText()) }}</x-textarea>
+			<div class="text-gray-400 text-xs mt-1">
+				Other host names this site should answer on, one per line (or comma-separated).
+				Apache serves all of them from the same config.
+			</div>
+		</div>
 			<x-input name="document_root" type="text" class="w-full font-mono"
 				value="{{ old('document_root', $subject->document_root) }}" />
 			<div class="text-gray-400 text-xs mt-1">

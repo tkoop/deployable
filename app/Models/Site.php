@@ -20,6 +20,7 @@ class Site extends Model {
 
 	protected $casts = [
 		"enabled" => "boolean",
+		"aliases" => "array",
 	];
 
 	public function hook(): BelongsTo {
@@ -61,8 +62,30 @@ class Site extends Model {
 		return $this->apache()->path();
 	}
 
-	public function sslVhostPath(): string {
-		return $this->apache()->sslPath();
+	/**
+	 * All the host names this site answers on, primary domain first.
+	 *
+	 * @return array<int, string>
+	 */
+	public function allHosts(): array {
+		$hosts = [$this->domain];
+
+		foreach ($this->aliases ?? [] as $alias) {
+			$alias = trim((string) $alias);
+
+			if ($alias !== "" && !in_array($alias, $hosts, true)) {
+				$hosts[] = $alias;
+			}
+		}
+
+		return $hosts;
+	}
+
+	/**
+	 * The aliases as a newline-separated string, for editing in a textarea.
+	 */
+	public function aliasesText(): string {
+		return implode("\n", $this->aliases ?? []);
 	}
 
 	/**

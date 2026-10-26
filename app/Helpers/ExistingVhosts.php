@@ -39,10 +39,14 @@ class ExistingVhosts {
 					continue;
 				}
 
+				$aliases = self::aliases($contents);
+
 				$found[] = [
 					"file" => $file,
 					"basename" => basename($file),
 					"domain" => $domain,
+					"aliases" => $aliases,
+					"hosts" => array_merge([$domain], $aliases),
 					"document_root" => self::directive($contents, "DocumentRoot") ?: "",
 					"in_dropin" => $in_dropin,
 					"enabled" => $in_dropin || self::isEnabled(basename($file)),
@@ -68,7 +72,9 @@ class ExistingVhosts {
 	 */
 	public static function ownerOf(string $domain, array $ignore = []): string|null {
 		foreach (self::all() as $vhost) {
-			if (strcasecmp($vhost["domain"], $domain) !== 0) {
+			$hosts = $vhost["hosts"] ?? [$vhost["domain"]];
+
+			if (!in_array(strtolower($domain), array_map("strtolower", $hosts), true)) {
 				continue;
 			}
 
@@ -137,8 +143,28 @@ class ExistingVhosts {
 	}
 
 	/**
-	 * The first ServerName or DocumentRoot in a config, quotes and all.
+	 * All ServerAlias values from a config.
+	 *
+	 * @return array<int, string>
 	 */
+	private static function aliases(string $contents): array {
+		$aliases = [];
+
+		if (preg_match_all('/^\\s*ServerAlias\\s+(.+)$/mi', $contents, $matches)) {
+			foreach ($matches[1] as $line) {
+				foreach (preg_split('/\\s+/', trim($line)) ?: [] as $host) {
+					$host = strtolower(trim($host));
+
+					if ($host !== "" && !in_array($host, $aliases, true)) {
+						$aliases[] = $host;
+					}
+				}
+			}
+		}
+
+		return $aliases;
+	}
+
 	private static function directive(string $contents, string $name): string|null {
 		if (preg_match('/^\s*' . preg_quote($name, '/') . '\s+"?([^"\n]+)"?\s*$/mi', $contents, $matches)) {
 			return trim($matches[1]);
