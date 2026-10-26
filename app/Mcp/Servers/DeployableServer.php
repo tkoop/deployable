@@ -7,14 +7,24 @@ use App\Mcp\Resources\HookListResource;
 use App\Mcp\Resources\HookResource;
 use App\Mcp\Tools\AppendToHookScript;
 use App\Mcp\Tools\CreateHook;
+use App\Mcp\Tools\CreateSite;
 use App\Mcp\Tools\DeleteHook;
+use App\Mcp\Tools\DeleteSite;
+use App\Mcp\Tools\DisableSite;
+use App\Mcp\Tools\EnableSite;
 use App\Mcp\Tools\GetDeployment;
 use App\Mcp\Tools\GetDeploymentOutput;
 use App\Mcp\Tools\GetHook;
 use App\Mcp\Tools\ListDeployments;
+use App\Mcp\Tools\ListExistingVhosts;
 use App\Mcp\Tools\ListHooks;
 use App\Mcp\Tools\TriggerDeploy;
 use App\Mcp\Tools\UpdateHook;
+use App\Mcp\Tools\UpdateSite;
+use App\Mcp\Tools\ConnectExistingVhost;
+use App\Mcp\Tools\RequestSiteCertificate;
+use App\Mcp\Tools\CheckSiteCertificate;
+use App\Mcp\Tools\RemoveSiteCertificate;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
@@ -59,6 +69,16 @@ class DeployableServer extends Server {
 		UpdateHook::class,
 		AppendToHookScript::class,
 		DeleteHook::class,
+		CreateSite::class,
+		UpdateSite::class,
+		DeleteSite::class,
+		EnableSite::class,
+		DisableSite::class,
+		RequestSiteCertificate::class,
+		CheckSiteCertificate::class,
+		RemoveSiteCertificate::class,
+		ListExistingVhosts::class,
+		ConnectExistingVhost::class,
 	];
 
 	/**

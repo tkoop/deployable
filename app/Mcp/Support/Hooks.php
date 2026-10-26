@@ -142,6 +142,7 @@ class Hooks {
 			"updated_at" => self::timestamp($hook->updated_at),
 			"env_file_path" => $hook->envFile()->path() ?: null,
 			"env_directory_exists" => $hook->envFile()->directoryExists(),
+			"site" => $hook->site ? \App\Mcp\Support\Sites::detail($hook->site) : null,
 		];
 	}
 

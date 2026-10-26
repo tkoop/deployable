@@ -51,6 +51,8 @@ class GetHook extends BaseTool {
 				"updated_at" => $schema->string()->nullable()->required(),
 				"env_file_path" => $schema->string()->nullable()->required(),
 				"env_directory_exists" => $schema->boolean()->required(),
+				"site" => $schema->object()->nullable()->required()
+					->description('The Apache site this hook serves, if any. Null when the hook has no site.'),
 			])->required(),
 		];
 	}
