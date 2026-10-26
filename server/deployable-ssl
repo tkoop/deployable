@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 
 REQ_DIR = "/var/www/deployable.timkoop.com/storage/app/apache/ssl-requests"
 RESULT_DIR = "/var/www/deployable.timkoop.com/storage/app/apache/ssl-results"
-VHOST_DIR = "/etc/apache2/deployable"
+VHOST_DIR = "/var/www/deployable.timkoop.com/storage/app/apache/vhosts"
 CERTBOT = "/snap/bin/certbot"
 
 DOMAIN_RE = re.compile(
