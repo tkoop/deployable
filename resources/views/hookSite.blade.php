@@ -207,7 +207,7 @@
 					<form method="post" action="/hook/{{ $hook->id }}/site/action">
 						@csrf
 						<input type="hidden" name="request_ssl">
-						<x-button @if (empty($site->ssl_email)) disabled @endif>Request certificate</x-button>
+						<x-button>Request certificate</x-button>
 					</form>
 				</div>
 			@endif
