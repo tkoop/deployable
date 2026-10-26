@@ -95,6 +95,7 @@ def request_cert(domain, email, webroot, hosts):
         "--non-interactive",
         "--agree-tos",
         "--keep-until-expiring",
+        "--expand",
     ]
 
     proc = subprocess.run(command, capture_output=True, text=True, timeout=TIMEOUT_SECONDS)
