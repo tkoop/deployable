@@ -318,6 +318,9 @@ def main():
             "Nothing to reload: the drop-in directory already matches what "
             "Apache is running."
         )
+        # Confirm the sync by stamping reloaded_at: the files on disk match
+        # the last good snapshot, so Apache already has them.
+        reloaded_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
     note_rejections(rejected)
     write_result(True, True, message, rejected, reloaded_at)
