@@ -191,16 +191,23 @@
 				</div>
 
 			@else
-				<div class="text-sm mb-2">
-					No certificate yet. The site is serving plain http.
-					Set an email above if you haven't, then ask Let's Encrypt &mdash; it takes a
-					few seconds and needs the site to be reachable on port 80.
-				</div>
+				@if (empty($site->ssl_email))
+					<div class="text-sm mb-2 text-amber-800">
+						Set a Let's Encrypt email in the form above and save first &mdash;
+						certbot needs a reachable address for expiry warnings.
+					</div>
+				@else
+					<div class="text-sm mb-2">
+						No certificate yet. The site is serving plain http. Asking Let's
+						Encrypt takes a few seconds and needs the site to be reachable on
+						port 80.
+					</div>
+				@endif
 				<div class="flex gap-2">
 					<form method="post" action="/hook/{{ $hook->id }}/site/action">
 						@csrf
 						<input type="hidden" name="request_ssl">
-						<x-button>Request certificate</x-button>
+						<x-button @if (empty($site->ssl_email)) disabled @endif>Request certificate</x-button>
 					</form>
 				</div>
 			@endif
