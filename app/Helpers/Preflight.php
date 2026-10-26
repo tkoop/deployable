@@ -570,6 +570,7 @@ class Preflight {
 				"certificate",
 				"Certificate is in use",
 				"Let's Encrypt refused the last request for {$site->domain}.",
+				blocking: false,
 				detail: trim((string) ($result["output"] ?? $site->ssl_output ?? "")),
 				how: "The usual causes are DNS not pointing here yet, or port 80 being unreachable from outside. Fix that, then request the certificate again.",
 				commands: ["dig +short {$site->domain}"],
