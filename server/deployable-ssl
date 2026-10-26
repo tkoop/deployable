@@ -144,7 +144,28 @@ def names_on_vhost(path):
 
 
 def resolves(host):
-    """True when the name currently has DNS, which a Let's Encrypt check needs."""
+    """True when the name currently has DNS, which a Let's Encrypt check needs.
+
+    Asks public resolvers first: the host's own resolver can keep answering
+    NXDOMAIN for a negative-TTL period long after a record was just added, and
+    renewals rarely wait an hour for it to forget. Let's Encrypt itself looks
+    the name up over the internet, so public resolvers are what it sees.
+    """
+    for resolver in ("1.1.1.1", "8.8.8.8"):
+        try:
+            proc = subprocess.run(
+                ["dig", "+short", "@" + resolver, host, "A", "+time=3", "+tries=1"],
+                capture_output=True, text=True, timeout=10,
+            )
+            answer = [
+                line for line in proc.stdout.splitlines()
+                if line.strip() and not line.lstrip().startswith(";")
+            ]
+            if answer:
+                return True
+        except (subprocess.TimeoutExpired, OSError, ValueError):
+            pass
+
     try:
         socket.getaddrinfo(host, None, socket.AF_INET, socket.SOCK_STREAM)
         return True
