@@ -31,7 +31,7 @@ class CreateSite extends BaseTool {
 
 		$site = new Site(["hook_id" => $hook->id]);
 		$site->fill($validated);
-		$site->aliases = SiteValidation::normalizeAliases($request->input("aliases", ""));
+		$site->aliases = SiteValidation::normalizeAliases($request->get("aliases", ""));
 
 		$problems = Sites::problems($site);
 

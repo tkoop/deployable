@@ -27,7 +27,7 @@ class UpdateSite extends BaseTool {
 		$site->fill($validated);
 
 		if ($request->has("aliases")) {
-			$site->aliases = SiteValidation::normalizeAliases($request->input("aliases"));
+			$site->aliases = SiteValidation::normalizeAliases($request->get("aliases"));
 		}
 
 		if ($request->has("enabled")) {
