@@ -33,6 +33,11 @@ class DeploymentManager {
 		$lines = [
 			"#!/bin/bash",
 			"export NO_COLOR=1",
+			// php-fpm hands its children an environment with no PATH, and a
+			// script shell asks its own default in that case - but npm's script
+			// runner only rewrites PATH when it exists already, so anything
+			// spawned by `npm run` would see no PATH at all. Make it real.
+			"export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
 			"cd ..",
 			"",
 			"record_deploy_end() {",
