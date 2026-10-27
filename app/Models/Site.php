@@ -67,6 +67,31 @@ class Site extends Model {
 	}
 
 	/**
+	 * Where Apache writes this site's PHP/Apache error log, as declared by
+	 * the ErrorLog directive in the vhost template.  Reading it is what the
+	 * "PHP Error Log" button does.
+	 */
+	public function errorLogPath(): string {
+		return $this->apache()->errorLogPath();
+	}
+
+	public function sslErrorLogPath(): string {
+		return $this->apache()->sslErrorLogPath();
+	}
+
+	/**
+	 * Alias kept for callers that ask for the "PHP" log rather than the
+	 * Apache one - both are the same file for a proxied PHP site.
+	 */
+	public function phpErrorLogPath(): string {
+		return $this->errorLogPath();
+	}
+
+	public function logPath(): string {
+		return $this->errorLogPath();
+	}
+
+	/**
 	 * All the host names this site answers on, primary domain first.
 	 *
 	 * @return array<int, string>

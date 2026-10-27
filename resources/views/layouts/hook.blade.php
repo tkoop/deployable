@@ -37,6 +37,8 @@
 					     missing rather than hiding behind a disabled button. -->
 					<x-button-link href="/hook/{{ $hook->id }}/site" class="w-full mb-2">Site</x-button-link>
 
+					<x-button-link href="/hook/{{ $hook->id }}/error-log" class="w-full mb-2">PHP Error Log</x-button-link>
+
 					<div class="w-full mb-2">
 						<form method="post" action="/hook/{{ $hook->id }}/deploy">
 							@csrf

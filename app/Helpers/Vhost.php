@@ -47,6 +47,42 @@ class Vhost {
 		return $this->sslPath() . ".disabled";
 	}
 
+	/**
+	 * Where Apache writes this site's error log.  The vhost template points
+	 * ErrorLog at ${APACHE_LOG_DIR}/<domain>_error.log, so mirror that here.
+	 */
+	public function errorLogPath(): string {
+		$dir = $this->logDir();
+
+		return rtrim($dir, "/") . "/" . $this->site->domain . "_error.log";
+	}
+
+	public function sslErrorLogPath(): string {
+		$dir = $this->logDir();
+
+		return rtrim($dir, "/") . "/" . $this->site->domain . "_ssl_error.log";
+	}
+
+	public function phpErrorLogPath(): string {
+		return $this->errorLogPath();
+	}
+
+	public function logPath(): string {
+		return $this->errorLogPath();
+	}
+
+	private function logDir(): string {
+		foreach (["apache_log_dir", "error_log_dir", "log_dir"] as $key) {
+			$value = config("deployable.{$key}");
+
+			if (is_string($value) && $value !== "") {
+				return $value;
+			}
+		}
+
+		return "/var/log/apache2";
+	}
+
 	public function exists(): bool {
 		return is_file($this->path()) || is_file($this->disabledPath());
 	}

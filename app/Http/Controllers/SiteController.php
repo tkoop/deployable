@@ -21,6 +21,52 @@ use Illuminate\Http\Request;
  * files to copy into the site directory so a hook can adopt it.
  */
 class SiteController extends Controller {
+
+	public function errorLog(Request $request, Hook $hook) {
+		$site = $hook->site;
+
+		if ($site !== null) {
+			$path = $site->errorLogPath();
+		} else {
+			// A hook with no site yet has no Apache error log to show, so
+			// fall back to Deployable's own Laravel log rather than 404ing.
+			$path = storage_path("logs/laravel.log");
+		}
+
+		$contents = "";
+
+		if (is_file($path)) {
+			$raw = @file_get_contents($path);
+
+			if ($raw !== false) {
+				$contents = $raw;
+			}
+		}
+
+		// Deployable's own application log (Laravel/Monolog). Kept separate
+		// from the PHP/Apache error log above so both are visible.
+		$appPath = (string) (config("logging.channels.single.path") ?: storage_path("logs/laravel.log"));
+		$appContents = "";
+
+		if (is_file($appPath)) {
+			$raw = @file_get_contents($appPath);
+
+			if ($raw !== false) {
+				$appContents = $raw;
+			}
+		}
+
+		return view("hookErrorLog", [
+			"hook" => $hook,
+			"site" => $site,
+			"path" => $path,
+			"contents" => $contents,
+			"exists" => is_file($path),
+			"appPath" => $appPath,
+			"appContents" => $appContents,
+			"appExists" => is_file($appPath),
+		]);
+	}
 	public function view(Request $request, Hook $hook) {
 		$site = $hook->site;
 

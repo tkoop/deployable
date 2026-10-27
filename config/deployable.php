@@ -22,6 +22,15 @@ return [
     // write to /etc or /var/lib - only to paths inside the application.
     "vhost_dir" => env("DEPLOYABLE_VHOST_DIR", "/var/www/deployable.timkoop.com/storage/app/apache/vhosts"),
 
+    // Where Apache writes the per-site error logs that the vhost template
+    // points at (ErrorLog ${APACHE_LOG_DIR}/<domain>_error.log).  Deployable
+    // can't make PHP or Apache use a different location, but it can read from
+    // here so the "PHP Error Log" button has something to show.  Override it
+    // in tests or on a server where the logs live elsewhere.
+    "apache_log_dir" => env("DEPLOYABLE_APACHE_LOG_DIR", "/var/log/apache2"),
+    "error_log_dir" => env("DEPLOYABLE_ERROR_LOG_DIR", env("DEPLOYABLE_APACHE_LOG_DIR", "/var/log/apache2")),
+    "log_dir" => env("DEPLOYABLE_LOG_DIR", env("DEPLOYABLE_APACHE_LOG_DIR", "/var/log/apache2")),
+
     // What deployable-vhost wrote the last time it ran. Root writes this;
     // the app only reads it, so /var/lib is fine.
     "reload_result" => env("DEPLOYABLE_RELOAD_RESULT", "/var/lib/deployable/last-reload.json"),

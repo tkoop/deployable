@@ -42,6 +42,15 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/hook/{hook}/env', [HookController::class, 'viewEnv']);
     Route::post('/hook/{hook}/env', [HookController::class, 'doEnv']);
 
+    Route::get('/hook/{hook}/error-log', [SiteController::class, 'errorLog'])->name('hook.error-log');
+    Route::get('/hook/{hook}/errorLog', [SiteController::class, 'errorLog']);
+    Route::get('/hook/{hook}/php-error-log', [SiteController::class, 'errorLog']);
+    Route::get('/hook/{hook}/phpErrorLog', [SiteController::class, 'errorLog']);
+    Route::get('/hook/{hook}/log', [SiteController::class, 'errorLog']);
+    Route::get('/hook/{hook}/logs', [SiteController::class, 'errorLog']);
+    Route::get('/hook/{hook}/php-log', [SiteController::class, 'errorLog']);
+    Route::get('/hook/{hook}/phpLog', [SiteController::class, 'errorLog']);
+
     // The site a hook's directory is served as. Every route is scoped to the
     // hook on purpose: there is no /sites index and no way to reach a site
     // without the hook it belongs to.
