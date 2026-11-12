@@ -18,6 +18,7 @@ use App\Mcp\Tools\GetHook;
 use App\Mcp\Tools\ListDeployments;
 use App\Mcp\Tools\ListExistingVhosts;
 use App\Mcp\Tools\ListHooks;
+use App\Mcp\Tools\SetHookEnvVariable;
 use App\Mcp\Tools\TriggerDeploy;
 use App\Mcp\Tools\UpdateHook;
 use App\Mcp\Tools\UpdateSite;
@@ -67,6 +68,7 @@ class DeployableServer extends Server {
 		TriggerDeploy::class,
 		CreateHook::class,
 		UpdateHook::class,
+		SetHookEnvVariable::class,
 		AppendToHookScript::class,
 		DeleteHook::class,
 		CreateSite::class,
