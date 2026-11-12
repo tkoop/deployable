@@ -13,16 +13,6 @@
 			@endif
 		</div>
 
-		@if (count($envFile->variableNames()) > 0)
-			<div class="mb-3">
-				<div class="mb-1">Variables</div>
-				<div class="flex flex-wrap gap-1">
-					@foreach ($envFile->variableNames() as $variable)
-						<span class="px-2 py-1 font-mono text-xs bg-gray-200 rounded">{{ $variable }}</span>
-					@endforeach
-				</div>
-			</div>
-		@endif
 
 		<div class="mb-5">
 			<x-textarea name="env" style="min-height:400px" class="w-full font-mono" spellcheck="false"
