@@ -40,7 +40,7 @@
 			<div class="mb-5">
 				<label class="flex items-start">
 					<input type="hidden" name="refreshConfig" value="0">
-					<x-checkbox id="refreshConfig" name="refreshConfig" value="1" class="mt-1 mr-2" @if(old('refreshConfig', '1') == '1') checked @endif />
+					<input type="checkbox" id="refreshConfig" name="refreshConfig" value="1" class="mt-1 mr-2 rounded-md shadow-sm border-gray-300 text-indigo-600 focus:ring focus:ring-indigo-200/50" @if(old('refreshConfig', '1') == '1') checked @endif />
 					<span>
 						Also clear and rebuild the project's config cache
 						<div class="font-mono text-xs text-gray-400">php artisan config:clear &amp;&amp; php artisan config:cache</div>
@@ -48,6 +48,7 @@
 				</label>
 			</div>
 		@else
+
 			<div class="mb-5 text-gray-500">
 				This isn't a Laravel project, so there's no config cache to rebuild.
 			</div>
