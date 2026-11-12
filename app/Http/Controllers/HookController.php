@@ -69,7 +69,14 @@ class HookController extends Controller {
 			abort(404);
 		}
 
-		return view('hookEnv', ["hook" => $hook, "envFile" => $hook->envFile()]);
+		$envFile = $hook->envFile();
+		return view('hookEnv', [
+			"hook" => $hook,
+			"envFile" => $envFile,
+			"isLaravel" => $envFile->isLaravel(),
+			"isLaravelProject" => $envFile->isLaravelProject(),
+			"laravel" => $envFile->isLaravel(),
+		]);
 	}
 
 	public function doEnv(Hook $hook) {
@@ -86,11 +93,12 @@ class HookController extends Controller {
 
 		$redirect = redirect('/hook/' . $hook->id . '/env')->withStatus("Environment file was saved.");
 
-		// The checkbox defaults to on, so an absent value (e.g. an older
-		// client) is treated as "refresh".  An explicit "0" still opts out.
+		// The checkbox defaults to on for Laravel projects (which have a config
+		// cache to rebuild) and off otherwise.  An absent value (e.g. an older
+		// client) follows that default; an explicit "0" still opts out.
 		$refreshConfig = request()->has("refreshConfig")
 			? request()->boolean("refreshConfig")
-			: true;
+			: $hook->envFile()->isLaravel();
 
 		if ($refreshConfig) {
 			$result = ConfigCache::forHook($hook)->refresh();

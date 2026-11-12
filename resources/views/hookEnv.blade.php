@@ -39,7 +39,7 @@
 		<div class="mb-5">
 			<label class="flex items-start">
 				<input type="hidden" name="refreshConfig" value="0">
-				<x-checkbox id="refreshConfig" name="refreshConfig" value="1" class="mt-1 mr-2" @if(old('refreshConfig', '1') == '1') checked @endif />
+				<x-checkbox id="refreshConfig" name="refreshConfig" value="1" class="mt-1 mr-2" @if(old('refreshConfig', $envFile->isLaravel() ? '1' : '0') == '1') checked @endif />
 				<span>
 					Also clear and rebuild the project's config cache
 					<div class="font-mono text-xs text-gray-400">php artisan config:clear &amp;&amp; php artisan config:cache</div>
@@ -60,9 +60,10 @@
 
 			var stored = localStorage.getItem(key);
 
-			// On by default, until somebody ticks it off.  Remember the choice
-			// across page loads so it stays as set until changed again.
-			box.checked = stored === null ? true : stored === "1";
+			// On by default for Laravel projects, until somebody ticks it off.
+			// Remember the choice across page loads so it stays as set until
+			// changed again.
+			box.checked = stored === null ? {{ $envFile->isLaravel() ? 'true' : 'false' }} : stored === "1";
 
 			box.addEventListener("change", function() {
 				localStorage.setItem(key, box.checked ? "1" : "0");

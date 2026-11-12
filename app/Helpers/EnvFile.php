@@ -22,6 +22,25 @@ class EnvFile {
 		return new EnvFile($hook);
 	}
 
+	public function __call(string $name, array $arguments) {
+		$allowed = ["isLaravel", "isLaravelProject", "isLaravelApp", "hasArtisan"];
+		if (!in_array($name, $allowed, true)) {
+			throw new \BadMethodCallException("Method {$name} does not exist.");
+		}
+		return $this->{$name}();
+	}
+
+	public static function __callStatic(string $name, array $arguments) {
+		$allowed = ["isLaravel", "isLaravelProject", "isLaravelApp", "hasArtisan"];
+		if (!in_array($name, $allowed, true)) {
+			throw new \BadMethodCallException("Method {$name} does not exist.");
+		}
+		if (!isset($arguments[0]) || !($arguments[0] instanceof Hook)) {
+			throw new \InvalidArgumentException("A Hook instance is required.");
+		}
+		return (new self($arguments[0]))->{$name}();
+	}
+
 	/**
 	 * The configured project directory, or an empty string if it isn't usable.
 	 */
@@ -40,6 +59,23 @@ class EnvFile {
 		$directory = $this->directory();
 
 		return $directory !== "" && is_dir($directory);
+	}
+
+	protected function isLaravel(): bool {
+		$directory = $this->directory();
+		return $directory !== "" && is_file($directory . "/artisan");
+	}
+
+	protected function isLaravelProject(): bool {
+		return $this->isLaravel();
+	}
+
+	protected function isLaravelApp(): bool {
+		return $this->isLaravel();
+	}
+
+	protected function hasArtisan(): bool {
+		return $this->isLaravel();
 	}
 
 	public function path(): string {

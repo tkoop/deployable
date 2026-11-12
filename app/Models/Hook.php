@@ -37,6 +37,41 @@ class Hook extends Model {
 		return EnvFile::forHook($this);
 	}
 
+	public function __call($name, $arguments) {
+		$allowed = ["isLaravel", "isLaravelProject", "isLaravelApp", "hasArtisan"];
+		if (!in_array($name, $allowed, true)) {
+			return parent::__call($name, $arguments);
+		}
+		return $this->{$name}();
+	}
+
+	public static function __callStatic($name, $arguments) {
+		$allowed = ["isLaravel", "isLaravelProject", "isLaravelApp", "hasArtisan"];
+		if (!in_array($name, $allowed, true)) {
+			return parent::__callStatic($name, $arguments);
+		}
+		if (!isset($arguments[0]) || !($arguments[0] instanceof self)) {
+			throw new \InvalidArgumentException("A Hook instance is required.");
+		}
+		return $arguments[0]->{$name}();
+	}
+
+	protected function isLaravel(): bool {
+		return $this->envFile()->isLaravel();
+	}
+
+	protected function isLaravelProject(): bool {
+		return $this->envFile()->isLaravelProject();
+	}
+
+	protected function isLaravelApp(): bool {
+		return $this->envFile()->isLaravelApp();
+	}
+
+	protected function hasArtisan(): bool {
+		return $this->envFile()->hasArtisan();
+	}
+
 	/**
 	 * @returns Carbon or null
 	 */

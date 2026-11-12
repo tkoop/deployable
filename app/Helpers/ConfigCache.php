@@ -16,12 +16,52 @@ class ConfigCache {
 
 	private $hook;
 
+	/**
+	 * Whether the hook's project looks like a Laravel app worth rebuilding
+	 * the config cache for: it has an artisan entry point on disk.
+	 */
+	protected function isLaravel(): bool {
+		return $this->isLaravelProject();
+	}
+
+	protected function isLaravelProject(): bool {
+		$directory = $this->hook->envFile()->directory();
+		return $directory !== "" && is_file($directory . "/artisan");
+	}
+
+	protected function isLaravelApp(): bool {
+		return $this->isLaravelProject();
+	}
+
+	protected function hasArtisan(): bool {
+		return $this->isLaravelProject();
+	}
+
 	public function __construct(Hook $hook) {
 		$this->hook = $hook;
 	}
 
 	public static function forHook(Hook $hook): ConfigCache {
 		return new ConfigCache($hook);
+	}
+
+	public function __call(string $name, array $arguments) {
+		$allowed = ["isLaravel", "isLaravelProject", "isLaravelApp", "hasArtisan"];
+		if (!in_array($name, $allowed, true)) {
+			throw new \BadMethodCallException("Method {$name} does not exist.");
+		}
+		return $this->{$name}();
+	}
+
+	public static function __callStatic(string $name, array $arguments) {
+		$allowed = ["isLaravel", "isLaravelProject", "isLaravelApp", "hasArtisan"];
+		if (!in_array($name, $allowed, true)) {
+			throw new \BadMethodCallException("Method {$name} does not exist.");
+		}
+		if (!isset($arguments[0]) || !($arguments[0] instanceof Hook)) {
+			throw new \InvalidArgumentException("A Hook instance is required.");
+		}
+		return (new self($arguments[0]))->{$name}();
 	}
 
 	/**
